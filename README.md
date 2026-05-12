@@ -25,7 +25,8 @@ A local, privacy-first RAG (Retrieval-Augmented Generation) agent that runs on R
   - [Install Docker Desktop](https://www.docker.com/products/docker-desktop)
   - Includes both Docker and Docker Compose
 
-OR for local development:
+Or, for local development:
+
 - **.NET 8 SDK** or later
 - **Qdrant** (vector database)
 - **Ollama** (local LLM runtime)
@@ -35,7 +36,7 @@ OR for local development:
 The easiest way to get started is with Docker Compose, which automatically sets up all services.
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 This will start:
@@ -46,23 +47,53 @@ This will start:
 ### Access the API
 
 Once running, the API documentation is available at:
-- [Swagger UI](http://localhost:8000/swagger/index.html) - Interactive API explorer
+- [Swagger UI](http://localhost:8000/swagger/index.html)
 
-## Gmail Authentication Flow
+## Gmail Setup
 
-This app supports browser-based Gmail authentication for Docker-hosted local apps.
+This app uses your own Google Cloud credentials to access your Gmail. This keeps
+your data entirely local — your emails never touch any external server.
 
-1. Place your Google OAuth `credentials.json` file in the project root.
-2. Start the app with Docker Compose:
-   ```bash
-docker-compose up --build
+### Step 1 — Create a Google Cloud Project
+
+1. Go to [console.cloud.google.com](https://console.cloud.google.com) and sign in
+2. Click **Select a project → New Project**, give it any name, click **Create**
+
+### Step 2 — Enable the Gmail API
+
+1. In the left menu go to **APIs & Services → Library**
+2. Search for **Gmail API** and click **Enable**
+
+### Step 3 — Create OAuth Credentials
+
+1. Go to **APIs & Services → Credentials → Create Credentials → OAuth client ID**
+2. If prompted to configure a consent screen first, click **Configure Consent Screen**:
+   - Choose **External**, click **Create**
+   - Fill in an app name (anything) and your email, click **Save and Continue** through the remaining screens
+3. Back in Create OAuth client ID, select **Desktop app** as the application type
+4. Click **Create**, then **Download JSON**
+5. Rename the downloaded file to `credentials.json` and place it in the app's root folder
+
+### Step 4 — Run the App
+
+```bash
+docker compose up --build
 ```
-3. In your browser, open:
-   - `http://localhost:8000/authorize?userId=<your-email@gmail.com>`
-4. Sign in with your Google account.
-5. Google will redirect back to `/oauth2callback`, and the app will store the refresh token locally.
 
-If there is no stored credential, `GET /inbox` will return a JSON response containing the auth URL.
+### Authenticate with your Gmail
+
+1. Open the authorization URL in your browser:
+   - `http://localhost:8000/authorize?userId=you@example.com`
+2. Sign in with your Google account.
+3. After consent, Google redirects back to `/oauth2callback` and the app stores a refresh token locally.
+
+On first launch, your browser will open a Google sign-in page. Sign in with the
+Gmail account you want to query. Google may show an "unverified app" warning —
+this is expected since these are your own credentials. Click **Continue**.
+
+Your login is saved locally and won't be required again.
+
+If there is no stored credential, `GET /inbox?userId=you@example.com` will return a JSON response containing an authorization URL.
 
 ## Local Development
 
