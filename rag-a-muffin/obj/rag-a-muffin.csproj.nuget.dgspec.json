@@ -1,0 +1,91 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/willballentine/src/rag-a-muffin/rag-a-muffin/rag-a-muffin.csproj": {}
+  },
+  "projects": {
+    "/Users/willballentine/src/rag-a-muffin/rag-a-muffin/rag-a-muffin.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/willballentine/src/rag-a-muffin/rag-a-muffin/rag-a-muffin.csproj",
+        "projectName": "rag-a-muffin",
+        "projectPath": "/Users/willballentine/src/rag-a-muffin/rag-a-muffin/rag-a-muffin.csproj",
+        "packagesPath": "/Users/willballentine/.nuget/packages/",
+        "outputPath": "/Users/willballentine/src/rag-a-muffin/rag-a-muffin/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/willballentine/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.OpenApi": {
+              "target": "Package",
+              "version": "[8.0.26, )"
+            },
+            "Microsoft.Extensions.AI": {
+              "target": "Package",
+              "version": "[10.5.2, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.4, )"
+            },
+            "Qdrant.Client": {
+              "target": "Package",
+              "version": "[1.18.1, )"
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[6.6.2, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.420/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
