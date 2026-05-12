@@ -1,14 +1,44 @@
 using RagAMuffin.Models;
 using RagAMuffin.Auth;
 using RagAMuffin.Services.ExternalApps;
+using RagAMuffin.Services.Interfaces;
+using RagAMuffin.Services;
+using RagAMuffin.Qdrant;
+using Qdrant.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var app = builder.Build();
+builder.Services.AddHttpClient<IEmbeddingService, OllamaEmbeddingService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Ollama:BaseUrl"]!);
+});
 
+var qdrantHost = builder.Configuration["Qdrant:Host"] ?? "qdrant";
+var qdrantPort = int.TryParse(builder.Configuration["Qdrant:Port"], out var configuredPort) ? configuredPort : 6333;
+
+builder.Services.AddSingleton<QdrantClient>(sp =>
+    new QdrantClient(qdrantHost, qdrantPort));
+
+builder.Services.AddScoped<QdrantCollectionInitializer>();
+
+builder.Services.AddScoped<IVectorStore, QdrantVectorStore>();
+builder.Services.AddScoped<IChunker, TextChunker>();
+builder.Services.AddScoped<IEmailParser, EmailParser>();
+builder.Services.AddScoped<IIngestionPipeline, IngestionPipeline>();
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Information);
+
+var app = builder.Build();
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Starting Rag-A-Muffin application...");
+
+var initializer = app.Services.GetRequiredService<QdrantCollectionInitializer>();
+await initializer.InitializeAsync();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -16,7 +46,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//this is for testing purposes only. need to implement proper onboardin flow
+//this is for testing purposes only. need to implement proper onboarding flow
 app.MapGet("/authorize", async (HttpRequest request) =>
 {
     var userId = request.Query["userId"].ToString();
@@ -76,12 +106,16 @@ app.MapGet("/inbox", async (HttpRequest request) =>
 
     var gmailService = await GoogleAuth.CreateGmailServiceAsync(userId);
     var messages = await Gmail.FetchInboxAsync(gmailService, maxResults: 10);
+    var parser = new EmailParser(app.Services.GetRequiredService<ILogger<EmailParser>>());
+    logger.LogInformation("Fetched {Count} messages for user {UserId}. Starting ingestion...", messages.Count(), userId);
+    var ingestionPipeline = app.Services.GetRequiredService<IIngestionPipeline>();
+    await ingestionPipeline.IngestAsync(messages);
     return Results.Ok(messages.Select(m => new
     {
         Id = m.Id,
-        Subject = Gmail.GetHeader(m, "Subject"),
-        From = Gmail.GetHeader(m, "From"),
-        BodyPreview = Gmail.GetBody(m).Substring(0, 100) + "..."
+        Subject = parser.GetHeader(m, "Subject"),
+        From = parser.GetHeader(m, "From"),
+        BodyPreview = parser.GetBody(m).Substring(0, 100) + "..."
     }));
 });
 

@@ -1,8 +1,11 @@
+using RagAMuffin.Models;
+using RagAMuffin.Constants;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
+using System.Text.RegularExpressions;
 
 namespace RagAMuffin.Services.ExternalApps
 {
@@ -32,25 +35,6 @@ namespace RagAMuffin.Services.ExternalApps
             return messages;
         }
 
-        public static string GetHeader(Message message, string headerName)
-        {
-            return message.Payload.Headers
-                .FirstOrDefault(h => h.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase))
-                ?.Value ?? string.Empty;
-        }
 
-        public static string GetBody(Message message)
-        {
-            var part = message.Payload.Parts?
-                .FirstOrDefault(p => p.MimeType == "text/plain")
-                ?? message.Payload;
-
-            if (part?.Body?.Data == null) return string.Empty;
-
-            // Gmail uses URL-safe base64
-            var base64 = part.Body.Data.Replace('-', '+').Replace('_', '/');
-            var bytes = Convert.FromBase64String(base64);
-            return System.Text.Encoding.UTF8.GetString(bytes);
-        }
     }
 }
