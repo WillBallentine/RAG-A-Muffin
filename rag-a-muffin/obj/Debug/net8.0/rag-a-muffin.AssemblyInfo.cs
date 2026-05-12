@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("rag-a-muffin")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2904040c9aa90c2d043630affdf3005736cc3398")]
 [assembly: System.Reflection.AssemblyProductAttribute("rag-a-muffin")]
 [assembly: System.Reflection.AssemblyTitleAttribute("rag-a-muffin")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
