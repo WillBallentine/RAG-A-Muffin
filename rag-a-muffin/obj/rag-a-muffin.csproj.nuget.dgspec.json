@@ -1,25 +1,31 @@
 {
   "format": 1,
   "restore": {
-    "/Users/willballentine/src/rag-a-muffin/rag-a-muffin/rag-a-muffin.csproj": {}
+    "C:\\src\\rag-a-muffin\\rag-a-muffin\\rag-a-muffin.csproj": {}
   },
   "projects": {
-    "/Users/willballentine/src/rag-a-muffin/rag-a-muffin/rag-a-muffin.csproj": {
+    "C:\\src\\rag-a-muffin\\rag-a-muffin\\rag-a-muffin.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/willballentine/src/rag-a-muffin/rag-a-muffin/rag-a-muffin.csproj",
+        "projectUniqueName": "C:\\src\\rag-a-muffin\\rag-a-muffin\\rag-a-muffin.csproj",
         "projectName": "rag-a-muffin",
-        "projectPath": "/Users/willballentine/src/rag-a-muffin/rag-a-muffin/rag-a-muffin.csproj",
-        "packagesPath": "/Users/willballentine/.nuget/packages/",
-        "outputPath": "/Users/willballentine/src/rag-a-muffin/rag-a-muffin/obj/",
+        "projectPath": "C:\\src\\rag-a-muffin\\rag-a-muffin\\rag-a-muffin.csproj",
+        "packagesPath": "C:\\Users\\jmontygman\\.nuget\\packages\\",
+        "outputPath": "C:\\src\\rag-a-muffin\\rag-a-muffin\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/Users/willballentine/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\jmontygman\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -37,12 +43,25 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Google.Apis": {
+              "target": "Package",
+              "version": "[1.74.0, )"
+            },
+            "Google.Apis.Auth": {
+              "target": "Package",
+              "version": "[1.74.0, )"
+            },
+            "Google.Apis.Gmail.v1": {
+              "target": "Package",
+              "version": "[1.74.0.4134, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[8.0.26, )"
@@ -83,7 +102,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.420/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

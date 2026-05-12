@@ -48,6 +48,22 @@ This will start:
 Once running, the API documentation is available at:
 - [Swagger UI](http://localhost:8000/swagger/index.html) - Interactive API explorer
 
+## Gmail Authentication Flow
+
+This app supports browser-based Gmail authentication for Docker-hosted local apps.
+
+1. Place your Google OAuth `credentials.json` file in the project root.
+2. Start the app with Docker Compose:
+   ```bash
+docker-compose up --build
+```
+3. In your browser, open:
+   - `http://localhost:8000/authorize?userId=<your-email@gmail.com>`
+4. Sign in with your Google account.
+5. Google will redirect back to `/oauth2callback`, and the app will store the refresh token locally.
+
+If there is no stored credential, `GET /inbox` will return a JSON response containing the auth URL.
+
 ## Local Development
 
 ### Install Dependencies

@@ -1,11 +1,1 @@
-{
-  "Version": 1,
-  "Hash": "ql5UC4C1lSLzPyMoZabRh+XJ35hosuI42rwiVVlI72Y=",
-  "Source": "rag-a-muffin",
-  "BasePath": "_content/rag-a-muffin",
-  "Mode": "Default",
-  "ManifestType": "Build",
-  "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": []
-}
+{"Version":1,"Hash":"hGTR6Iua/fIs8mPTzchrJK4YpMr6qupfn/2rNtIIgIw=","Source":"rag-a-muffin","BasePath":"_content/rag-a-muffin","Mode":"Default","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}

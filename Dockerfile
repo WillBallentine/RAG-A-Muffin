@@ -16,6 +16,7 @@ RUN dotnet publish "rag-a-muffin/rag-a-muffin.csproj" -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY ["credentials.json", "/app/credentials.json"]
 
 ENV ASPNETCORE_URLS=http://+:8000
 EXPOSE 8000

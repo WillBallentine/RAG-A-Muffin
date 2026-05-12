@@ -1,0 +1,65 @@
+# .NET build artifacts
+bin/
+obj/
+
+# ASP.NET temporary files
+*.db
+*.log
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / IDE
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local configuration files
+credentials.json
+appsettings.Development.json
+
+# Docker
+**/docker-compose.override.yml
+**/docker-compose.*.override.yml
+
+# NuGet packages
+*.nupkg
+packages/
+.nuget/
+
+# Visual Studio cache
+*.cache
+*.vs/
+
+# Generated files
+*.g.cs
+*.g.i.cs
+*.generated.cs
+*.designer.cs
+*Generated.*
+**/Generated/
+*.swagger.json
+*.tmp
+*.temp
+*~
+
+# User-specific files
+*.psess
+*.vspx
+*.userprefs
+
+# Logs
+*.log
+
+# Publish output
+publish/
+out/
+
+# Local Docker / runtime artifacts
+*.pid
+*.seed
