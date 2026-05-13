@@ -17,7 +17,7 @@ builder.Services.AddHttpClient<IEmbeddingService, OllamaEmbeddingService>(client
 });
 
 var qdrantHost = builder.Configuration["Qdrant:Host"] ?? "qdrant";
-var qdrantPort = int.TryParse(builder.Configuration["Qdrant:Port"], out var configuredPort) ? configuredPort : 6333;
+var qdrantPort = int.TryParse(builder.Configuration["Qdrant:Port"], out var configuredPort) ? configuredPort : 6334;
 
 builder.Services.AddSingleton<QdrantClient>(sp =>
     new QdrantClient(qdrantHost, qdrantPort));
