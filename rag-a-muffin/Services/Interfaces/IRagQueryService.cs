@@ -7,5 +7,6 @@ namespace RagAMuffin.Services.Interfaces
     public interface IRagQueryService
     {
         Task<QueryResponse> QueryAsync(QueryRequest request, CancellationToken ct = default);
+        IAsyncEnumerable<string> StreamQueryAsync(QueryRequest request, CancellationToken ct = default);
     }
 }

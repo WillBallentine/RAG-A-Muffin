@@ -131,4 +131,21 @@ app.MapPost("/query", async (QueryRequest request, IRagQueryService queryService
     return Results.Ok(response);
 });
 
+app.MapPost("/query/stream", async (QueryRequest request, IRagQueryService queryService, HttpContext ctx, CancellationToken ct) =>
+{
+    ctx.Response.ContentType = "text/event-stream";
+    ctx.Response.Headers["Cache-Control"] = "no-cache";
+    ctx.Response.Headers["X-Accel-Buffering"] = "no"; // disables nginx buffering if you add a reverse proxy later
+
+    await foreach (var token in queryService.StreamQueryAsync(request, ct))
+    {
+        await ctx.Response.WriteAsync($"data: {token}\n\n", ct);
+        await ctx.Response.Body.FlushAsync(ct);
+    }
+
+    // Signal the client the stream is done
+    await ctx.Response.WriteAsync("data: [DONE]\n\n", ct);
+    await ctx.Response.Body.FlushAsync(ct);
+});
+
 app.Run();

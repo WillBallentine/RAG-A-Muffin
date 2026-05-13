@@ -1,6 +1,8 @@
 using RagAMuffin.Services.Interfaces;
 using RagAMuffin.Models;
 using Google.Apis.Gmail.v1.Data;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 namespace RagAMuffin.Services
 {
     public class OllamaLlmService : ILlmService
@@ -27,6 +29,50 @@ namespace RagAMuffin.Services
 
             var result = await response.Content.ReadFromJsonAsync<OllamaGenerateResponse>(ct);
             return result!.Response;
+        }
+
+        public async IAsyncEnumerable<string> StreamAsync(string prompt,
+    [EnumeratorCancellation] CancellationToken ct = default)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/generate")
+            {
+                Content = JsonContent.Create(new
+                {
+                    model = "llama3.2",
+                    prompt = prompt,
+                    stream = true
+                })
+            };
+
+            // HttpCompletionOption.ResponseHeadersRead is critical —
+            // without it HttpClient buffers the entire response before returning
+            using var response = await _http.SendAsync(request,
+                HttpCompletionOption.ResponseHeadersRead, ct);
+
+            response.EnsureSuccessStatusCode();
+
+            using var stream = await response.Content.ReadAsStreamAsync(ct);
+            using var reader = new StreamReader(stream);
+
+            while (!reader.EndOfStream && !ct.IsCancellationRequested)
+            {
+                var line = await reader.ReadLineAsync(ct);
+                if (string.IsNullOrEmpty(line)) continue;
+
+                OllamaStreamChunk? chunk;
+                try
+                {
+                    chunk = JsonSerializer.Deserialize<OllamaStreamChunk>(line);
+                }
+                catch (JsonException)
+                {
+                    continue; // skip malformed lines
+                }
+
+                if (chunk is null || chunk.Done) yield break;
+
+                yield return chunk.Response;
+            }
         }
     }
 }

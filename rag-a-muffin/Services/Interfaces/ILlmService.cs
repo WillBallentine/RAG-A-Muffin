@@ -7,5 +7,6 @@ namespace RagAMuffin.Services.Interfaces
     public interface ILlmService
     {
         Task<string> CompleteAsync(string prompt, CancellationToken ct = default);
+        IAsyncEnumerable<string> StreamAsync(string prompt, CancellationToken ct = default);
     }
 }

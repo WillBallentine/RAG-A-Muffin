@@ -1,6 +1,7 @@
 using RagAMuffin.Services.Interfaces;
 using RagAMuffin.Models;
 using Google.Apis.Gmail.v1.Data;
+using System.Runtime.CompilerServices;
 namespace RagAMuffin.Services
 {
     public class RagQueryService : IRagQueryService
@@ -59,6 +60,33 @@ namespace RagAMuffin.Services
             }).ToList();
 
             return new QueryResponse { Answer = answer, Citations = citations };
+        }
+
+        public async IAsyncEnumerable<string> StreamQueryAsync(QueryRequest request,
+            [EnumeratorCancellation] CancellationToken ct = default)
+        {
+            // Steps 1-3 are identical to QueryAsync — embed, search, build prompt
+            _logger.LogInformation("Embedding query for streaming: {Question}", request.Query);
+            var queryVector = await _embedder.EmbedAsync(request.Query, ct);
+
+            var chunks = await _vectorStore.SearchAsync(queryVector, request.TopK, ct);
+            _logger.LogInformation("Retrieved {Count} chunks for streaming query", chunks.Count);
+
+            if (chunks.Count == 0)
+            {
+                yield return "I couldn't find any relevant emails for your question.";
+                yield break;
+            }
+
+            var prompt = BuildPrompt(request.Query, chunks);
+
+           // Stream tokens directly from the LLM
+            await foreach (var token in _llm.StreamAsync(prompt, ct))
+            {
+                yield return token;
+            }
+
+            // Citations sent as a final SSE event — see endpoint below
         }
 
         private static string BuildPrompt(string question, List<ScoredChunk> chunks)
