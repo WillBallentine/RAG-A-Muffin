@@ -40,6 +40,53 @@ namespace RagAMuffin.Services
             await _client.UpsertAsync(CollectionName, [point], cancellationToken: ct);
         }
 
+        public async Task<List<ScoredChunk>> SearchAsync(float[] queryVector, int topK = 5, CancellationToken ct = default)
+        {
+            var results = await _client.SearchAsync(
+                CollectionName,
+                queryVector,
+                limit: (ulong)topK,
+                cancellationToken: ct
+            );
+
+            return results.Select(r => new ScoredChunk
+            {
+                EmailId = r.Payload["emailId"].StringValue,
+                ThreadId = r.Payload["threadId"].StringValue,
+                Subject = r.Payload["subject"].StringValue,
+                From = r.Payload["from"].StringValue,
+                Date = r.Payload["date"].StringValue,
+                Text = r.Payload["text"].StringValue,
+                Score = r.Score
+            }).ToList();
+        }
+
+        public async Task<bool> EmailExistsAsync(string emailId, CancellationToken ct = default)
+        {
+            var results = await _client.SearchAsync(
+                CollectionName,
+                new float[768], // dummy vector — we're filtering by payload not similarity
+                filter: new Filter
+                {
+                    Must =
+                    {
+                new Condition
+                {
+                    Field = new FieldCondition
+                    {
+                        Key   = "emailId",
+                        Match = new Match { Text = emailId }
+                    }
+                }
+                    }
+                },
+                limit: 1,
+                cancellationToken: ct
+            );
+
+            return results.Any();
+        }
+
         public async Task DeleteByEmailIdAsync(string emailId, CancellationToken ct = default)
         {
             // Delete all chunks belonging to an email using a payload filter

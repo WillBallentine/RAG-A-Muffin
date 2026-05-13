@@ -16,6 +16,12 @@ builder.Services.AddHttpClient<IEmbeddingService, OllamaEmbeddingService>(client
     client.BaseAddress = new Uri(builder.Configuration["Ollama:BaseUrl"]!);
 });
 
+builder.Services.AddHttpClient<ILlmService, OllamaLlmService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Ollama:BaseUrl"]!);
+    client.Timeout = TimeSpan.FromMinutes(10); // LLMs can be slow locally
+});
+
 var qdrantHost = builder.Configuration["Qdrant:Host"] ?? "qdrant";
 var qdrantPort = int.TryParse(builder.Configuration["Qdrant:Port"], out var configuredPort) ? configuredPort : 6334;
 
@@ -23,9 +29,9 @@ builder.Services.AddSingleton<QdrantClient>(sp =>
     new QdrantClient(qdrantHost, qdrantPort));
 
 builder.Services.AddScoped<QdrantCollectionInitializer>();
-
+builder.Services.AddScoped<IRagQueryService, RagQueryService>();
 builder.Services.AddScoped<IVectorStore, QdrantVectorStore>();
-builder.Services.AddScoped<IChunker, TextChunker>();
+builder.Services.AddScoped<IChunker>(sp => new TextChunker(sp.GetRequiredService<ILogger<TextChunker>>(), 100, 25));
 builder.Services.AddScoped<IEmailParser, EmailParser>();
 builder.Services.AddScoped<IIngestionPipeline, IngestionPipeline>();
 
@@ -119,12 +125,10 @@ app.MapGet("/inbox", async (HttpRequest request) =>
     }));
 });
 
-app.MapPost("/upload", (UploadRequest uploadRequest) =>
+app.MapPost("/query", async (QueryRequest request, IRagQueryService queryService, CancellationToken ct) =>
 {
-    return Results.Ok(new
-    {
-        Message = $"Received request with name '{uploadRequest.Name}'."
-    });
+    var response = await queryService.QueryAsync(request, ct);
+    return Results.Ok(response);
 });
 
 app.Run();

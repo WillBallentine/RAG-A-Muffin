@@ -16,14 +16,13 @@ public class OllamaEmbeddingService : IEmbeddingService
     {
         var response = await _http.PostAsJsonAsync("api/embeddings", new
         {
-            model = "nomic-embed-text",
+            model = "nomic-embed-text",   // hardcoded for now, could be made dynamic later
             prompt = text
         }, ct);
 
         response.EnsureSuccessStatusCode();
 
         var result = await response.Content.ReadFromJsonAsync<OllamaEmbedResponse>(ct);
-        _logger.LogInformation("Received embedding of length {Length} for input text of length {TextLength}.", result?.Embedding.Length, text.Length);
         return result!.Embedding;
     }
 }

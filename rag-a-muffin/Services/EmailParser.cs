@@ -59,7 +59,7 @@ namespace RagAMuffin.Services
                 Subject = GetHeader(raw, "Subject"),
                 From = GetHeader(raw, "From"),
                 Date = parsedDate,
-                Body = GetBody(raw),
+                Body = body,
                 ThreadId = raw.ThreadId
             };
         }

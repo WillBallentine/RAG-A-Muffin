@@ -24,6 +24,13 @@ else
   echo "Model pull failed, but continuing..."
 fi
 
+echo "pulling llama3.2 model..."
+if ollama pull llama3.2; then
+  echo "Model pull completed"
+else
+  echo "Model pull failed, but continuing..."
+fi
+
 echo "Stopping background Ollama to restart in foreground..."
 kill "$OLLAMA_PID" || true
 wait "$OLLAMA_PID" 2>/dev/null || true
