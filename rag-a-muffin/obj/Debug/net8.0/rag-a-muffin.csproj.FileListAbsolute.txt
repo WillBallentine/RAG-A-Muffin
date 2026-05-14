@@ -94,3 +94,4 @@ C:\src\rag-a-muffin\rag-a-muffin\obj\Debug\net8.0\refint\rag-a-muffin.dll
 C:\src\rag-a-muffin\rag-a-muffin\obj\Debug\net8.0\rag-a-muffin.pdb
 C:\src\rag-a-muffin\rag-a-muffin\obj\Debug\net8.0\rag-a-muffin.genruntimeconfig.cache
 C:\src\rag-a-muffin\rag-a-muffin\obj\Debug\net8.0\ref\rag-a-muffin.dll
+C:\src\rag-a-muffin\rag-a-muffin\bin\Debug\net8.0\rag-a-muffin.staticwebassets.runtime.json

@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RAG-A-Muffin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0d0f0e;
+    --surface:   #141716;
+    --surface2:  #1a1e1c;
+    --border:    #252b28;
+    --accent:    #4ade80;
+    --accent-dim:#1e4a2e;
+    --text:      #e8ede9;
+    --text-muted:#6b7a6e;
+    --user-bg:   #1a2e20;
+    --user-border:#2d5238;
+    --err:       #f87171;
+    --radius:    12px;
+    --mono:      'DM Mono', monospace;
+    --sans:      'DM Sans', sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Layout ── */
+  .app {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100dvh;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 34px;
+    height: 34px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .logo-text span {
+    color: var(--accent);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+
+  .status-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Sync button ── */
+  .btn-sync {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    white-space: nowrap;
+  }
+
+  .btn-sync:hover {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .btn-sync:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+
+  .btn-sync svg {
+    transition: transform .5s ease;
+  }
+
+  .btn-sync.spinning svg {
+    animation: spin .8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Chat area ── */
+  .chat {
+    overflow-y: auto;
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    scroll-behavior: smooth;
+  }
+
+  .chat::-webkit-scrollbar { width: 4px; }
+  .chat::-webkit-scrollbar-track { background: transparent; }
+  .chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* ── Empty state ── */
+  .empty {
+    margin: auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    opacity: .6;
+  }
+
+  .empty-icon {
+    font-size: 40px;
+    filter: grayscale(0.3);
+  }
+
+  .empty h2 {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .empty p {
+    font-size: 13px;
+    color: var(--text-muted);
+    max-width: 300px;
+  }
+
+  /* ── Message bubbles ── */
+  .msg {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    animation: fadeUp .25s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 4px;
+  }
+
+  .msg.user .msg-label { color: var(--accent); }
+
+  .msg-bubble {
+    padding: 14px 18px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 14.5px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .msg.user .msg-bubble {
+    background: var(--user-bg);
+    border-color: var(--user-border);
+  }
+
+  /* ── Citations ── */
+  .citations {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .citation-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 4px;
+  }
+
+  .citation {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-dim);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 12px;
+    align-items: start;
+  }
+
+  .citation-subject {
+    color: var(--text);
+    font-weight: 500;
+    font-size: 13px;
+    grid-column: 1;
+  }
+
+  .citation-date {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    grid-column: 2;
+    grid-row: 1;
+    white-space: nowrap;
+  }
+
+  .citation-from {
+    grid-column: 1 / -1;
+    font-size: 12px;
+  }
+
+  /* ── Thinking indicator ── */
+  .thinking {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .thinking-dots span {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 1.2s ease-in-out infinite;
+  }
+
+  .thinking-dots span:nth-child(2) { animation-delay: .2s; }
+  .thinking-dots span:nth-child(3) { animation-delay: .4s; }
+
+  @keyframes blink {
+    0%, 80%, 100% { opacity: .2; transform: scale(.8); }
+    40%           { opacity: 1;  transform: scale(1); }
+  }
+
+  /* ── Input area ── */
+  .input-area {
+    padding: 16px 0 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 10px 10px 16px;
+    transition: border-color .2s;
+  }
+
+  .input-row:focus-within {
+    border-color: var(--accent);
+  }
+
+  textarea {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14.5px;
+    line-height: 1.6;
+    min-height: 24px;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  textarea::placeholder { color: var(--text-muted); }
+
+  textarea::-webkit-scrollbar { width: 3px; }
+  textarea::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .btn-send {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity .2s, transform .1s;
+    color: #0d0f0e;
+  }
+
+  .btn-send:hover  { opacity: .85; }
+  .btn-send:active { transform: scale(.95); }
+  .btn-send:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+
+  .input-hint {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    padding: 0 4px;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  .toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .toast.error {
+    border-left-color: var(--err);
+  }
+
+  /* ── Scrollbar for chat on Firefox ── */
+  .chat { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
+  /* ── Login screen ── */
+  .login-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    animation: fadeIn .3s ease;
+  }
+
+  .login-screen.hidden {
+    display: none;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin: 16px;
+  }
+
+  .login-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .login-logo-icon {
+    width: 52px;
+    height: 52px;
+    background: var(--accent);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+  }
+
+  .login-logo-text {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  .login-logo-text span { color: var(--accent); }
+
+  .login-tagline {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: -12px;
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .login-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+    display: block;
+  }
+
+  .login-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .login-input:focus {
+    border-color: var(--accent);
+  }
+
+  .login-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .btn-connect {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: #0d0f0e;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-connect:hover   { opacity: .85; }
+  .btn-connect:active  { transform: scale(.98); }
+  .btn-connect:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── Auth pending state ── */
+  .auth-pending {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .auth-pending.visible {
+    display: flex;
+  }
+
+  .auth-pending-text {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .auth-pending-text strong {
+    color: var(--text);
+  }
+
+  .auth-pending-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-confirm {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: #0d0f0e;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-confirm:hover    { opacity: .85; }
+  .btn-confirm:disabled { opacity: .4; cursor: not-allowed; }
+
+  .btn-back {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+
+  .btn-back:hover {
+    border-color: var(--text-muted);
+    color: var(--text);
+  }
+
+  .auth-error {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--err);
+    text-align: center;
+    min-height: 16px;
+  }
+
+  /* ── User pill in header ── */
+  .user-pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px 5px 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .user-pill-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .btn-signout {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 4px;
+    transition: color .2s;
+  }
+
+  .btn-signout:hover { color: var(--err); }
+</style>
+</head>
+<body>
+<!-- Login screen -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+
+    <div class="login-logo">
+      <div class="login-logo-icon">🧁</div>
+      <div class="login-logo-text">rag<span>-a-</span>muffin</div>
+      <div class="login-tagline">Your private, local email assistant</div>
+    </div>
+
+    <!-- Step 1: email input -->
+    <div class="login-form" id="loginForm">
+      <div>
+        <label class="login-label" for="emailInput">Gmail address</label>
+        <input
+          class="login-input"
+          id="emailInput"
+          type="email"
+          placeholder="you@gmail.com"
+          onkeydown="if(event.key==='Enter') startAuth()"
+          autocomplete="email"
+        />
+      </div>
+      <div class="auth-error" id="loginError"></div>
+      <button class="btn-connect" id="connectBtn" onclick="startAuth()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+          <polyline points="10 17 15 12 10 7"/>
+          <line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+        Connect Gmail
+      </button>
+    </div>
+
+    <!-- Step 2: waiting for Google auth -->
+    <div class="auth-pending" id="authPending">
+      <p class="auth-pending-text">
+        A Google sign-in tab has opened.<br/>
+        Complete sign-in there, then click below.
+      </p>
+      <div class="auth-pending-actions">
+        <div class="auth-error" id="authError"></div>
+        <button class="btn-confirm" id="confirmBtn" onclick="confirmAuth()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          I've signed in
+        </button>
+        <button class="btn-back" onclick="resetAuth()">← Use a different email</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🧁</div>
+      <span class="logo-text">rag<span>-a-</span>muffin</span>
+    </div>
+    <div class="header-actions">
+      <div class="status-dot"></div>
+      <span class="status-label">local</span>
+      <div class="user-pill" id="userPill">
+        <div class="user-pill-dot"></div>
+        <span id="userPillEmail"></span>
+        <button class="btn-signout" onclick="signOut()" title="Sign out">✕</button>
+      </div>
+      <button class="btn-sync" id="syncBtn" onclick="syncInbox()">
+        <svg id="syncIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+          <path d="M16 21h5v-5"/>
+        </svg>
+        Sync Inbox
+      </button>
+    </div>
+  </header>
+
+  <!-- Chat -->
+  <div class="chat" id="chat">
+    <div class="empty" id="empty">
+      <div class="empty-icon">🧁</div>
+      <h2>RAG-A-Muffin</h2>
+      <p>Ask anything about your emails. Sync your inbox first to get started.</p>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <div class="input-row">
+      <textarea
+        id="input"
+        placeholder="Ask about your emails..."
+        rows="1"
+        onkeydown="handleKey(event)"
+        oninput="autoResize(this)"
+      ></textarea>
+      <button class="btn-send" id="sendBtn" onclick="sendQuery()" title="Send">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+    <div class="input-hint">↵ send &nbsp;·&nbsp; shift+↵ newline</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Config ───────────────────────────────────────────────
+  const API_BASE = window.location.origin;
+
+  // ── State ────────────────────────────────────────────────
+  let isStreaming = false;
+  let currentUserId = localStorage.getItem('ram_userId') || null;
+
+  // ── Boot ─────────────────────────────────────────────────
+  function boot() {
+    if (currentUserId) {
+      showApp(currentUserId);
+    } else {
+      showLoginScreen();
+    }
+  }
+
+  // ── Auth flow ────────────────────────────────────────────
+  async function startAuth() {
+    const email = document.getElementById('emailInput').value.trim();
+    const errEl = document.getElementById('loginError');
+    errEl.textContent = '';
+
+    if (!email || !email.includes('@')) {
+      errEl.textContent = 'Enter a valid email address.';
+      return;
+    }
+
+    const btn = document.getElementById('connectBtn');
+    btn.disabled = true;
+    btn.textContent = 'Opening Google...';
+
+    try {
+      // Hit /authorize — it returns a redirect to Google's OAuth URL
+      // We open it in a new tab so the user can complete sign-in there
+      const authUrl = `${API_BASE}/authorize?userId=${encodeURIComponent(email)}`;
+      window.open(authUrl, '_blank');
+
+      // Store email for confirmation step
+      currentUserId = email;
+
+      // Switch to pending state
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('authPending').classList.add('visible');
+
+    } catch (err) {
+      errEl.textContent = `Failed to start auth: ${err.message}`;
+      btn.disabled = false;
+      btn.textContent = 'Connect Gmail';
+    }
+  }
+
+  async function confirmAuth() {
+    const errEl = document.getElementById('authError');
+    const btn = document.getElementById('confirmBtn');
+    errEl.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+
+    try {
+      // Verify by hitting /inbox — if token is stored this succeeds
+      const res = await fetch(`${API_BASE}/inbox?userId=${encodeURIComponent(currentUserId)}`);
+
+      if (res.status === 400) {
+        const body = await res.json();
+        // If auth URL is returned, they haven't completed Google sign-in yet
+        if (body.authorizationUrl) {
+          errEl.textContent = "Looks like sign-in isn't complete yet. Finish it in the Google tab and try again.";
+          btn.disabled = false;
+          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> I've signed in`;
+          return;
+        }
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      // Success — store userId and transition to app
+      localStorage.setItem('ram_userId', currentUserId);
+      showApp(currentUserId);
+      showToast('✓ Connected to Gmail');
+
+    } catch (err) {
+      errEl.textContent = `Verification failed: ${err.message}`;
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> I've signed in`;
+    }
+  }
+
+  function resetAuth() {
+    currentUserId = null;
+    document.getElementById('authPending').classList.remove('visible');
+    document.getElementById('loginForm').style.display = 'flex';
+    document.getElementById('loginError').textContent = '';
+    document.getElementById('authError').textContent = '';
+    const btn = document.getElementById('connectBtn');
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Connect Gmail`;
+  }
+
+  function signOut() {
+    localStorage.removeItem('ram_userId');
+    currentUserId = null;
+    // Clear chat
+    const chat = document.getElementById('chat');
+    chat.innerHTML = `
+      <div class="empty" id="empty">
+        <div class="empty-icon">🧁</div>
+        <h2>RAG-A-Muffin</h2>
+        <p>Ask anything about your emails. Sync your inbox first to get started.</p>
+      </div>`;
+    resetAuth();
+    showLoginScreen();
+  }
+
+  // ── Screen transitions ───────────────────────────────────
+  function showLoginScreen() {
+    document.getElementById('loginScreen').classList.remove('hidden');
+    setTimeout(() => document.getElementById('emailInput').focus(), 100);
+  }
+
+  function showApp(userId) {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('userPillEmail').textContent = userId;
+    document.getElementById('input').focus();
+  }
+
+  // ── Sync Inbox ───────────────────────────────────────────
+  async function syncInbox() {
+    const btn = document.getElementById('syncBtn');
+    btn.disabled = true;
+    btn.classList.add('spinning');
+
+    try {
+      const res = await fetch(`${API_BASE}/inbox?userId=${encodeURIComponent(currentUserId)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      showToast('✓ Inbox synced successfully');
+    } catch (err) {
+      showToast(`Sync failed: ${err.message}`, true);
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('spinning');
+    }
+  }
+
+  // ── Send Query ───────────────────────────────────────────
+  async function sendQuery() {
+    const input = document.getElementById('input');
+    const query = input.value.trim();
+    if (!query || isStreaming) return;
+
+    isStreaming = true;
+    setInputDisabled(true);
+    hideEmpty();
+
+    appendMessage('user', query);
+    input.value = '';
+    autoResize(input);
+
+    const thinkingEl = appendThinking();
+    let answer = '';
+
+    try {
+      const res = await fetch(`${API_BASE}/query/stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, topK: 5 })
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      thinkingEl.remove();
+      const bubbleEl = appendMessage('assistant', '');
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const payload = line.slice(6);
+          if (payload === '[DONE]') break;
+          answer += payload;
+          bubbleEl.textContent = answer;
+          scrollToBottom();
+        }
+      }
+
+    } catch (err) {
+      thinkingEl?.remove();
+      appendMessage('assistant', `Error: ${err.message}`);
+    } finally {
+      isStreaming = false;
+      setInputDisabled(false);
+      document.getElementById('input').focus();
+      scrollToBottom();
+    }
+  }
+
+  // ── DOM helpers ──────────────────────────────────────────
+  function hideEmpty() {
+    const el = document.getElementById('empty');
+    if (el) el.remove();
+  }
+
+  function appendMessage(role, text) {
+    const chat = document.getElementById('chat');
+    const msg = document.createElement('div');
+    msg.className = `msg ${role}`;
+
+    const label = document.createElement('div');
+    label.className = 'msg-label';
+    label.textContent = role === 'user' ? 'you' : 'muffin';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.textContent = text;
+
+    msg.appendChild(label);
+    msg.appendChild(bubble);
+    chat.appendChild(msg);
+    scrollToBottom();
+    return bubble;
+  }
+
+  function appendThinking() {
+    const chat = document.getElementById('chat');
+    const msg = document.createElement('div');
+    msg.className = 'msg assistant';
+
+    const label = document.createElement('div');
+    label.className = 'msg-label';
+    label.textContent = 'muffin';
+
+    const thinking = document.createElement('div');
+    thinking.className = 'thinking';
+    thinking.innerHTML = `
+      <div class="thinking-dots"><span></span><span></span><span></span></div>
+      <span>thinking...</span>`;
+
+    msg.appendChild(label);
+    msg.appendChild(thinking);
+    chat.appendChild(msg);
+    scrollToBottom();
+    return msg;
+  }
+
+  function setInputDisabled(disabled) {
+    document.getElementById('input').disabled = disabled;
+    document.getElementById('sendBtn').disabled = disabled;
+  }
+
+  function scrollToBottom() {
+    const chat = document.getElementById('chat');
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  // ── Toast ────────────────────────────────────────────────
+  let toastTimer;
+  function showToast(msg, isError = false) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = `toast${isError ? ' error' : ''} show`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // ── Input helpers ────────────────────────────────────────
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendQuery();
+    }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }
+
+  // ── Init ─────────────────────────────────────────────────
+  boot();
+</script>
+</body>
+</html>

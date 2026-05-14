@@ -39,6 +39,14 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader());
+});
+
 var app = builder.Build();
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Starting Rag-A-Muffin application...");
@@ -51,6 +59,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseDefaultFiles();  // serves index.html at /
+app.UseStaticFiles();   // serves wwwroot contents
+
+
+app.UseCors();
 
 //this is for testing purposes only. need to implement proper onboarding flow
 app.MapGet("/authorize", async (HttpRequest request) =>
