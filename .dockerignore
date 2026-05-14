@@ -1,0 +1,12 @@
+credentials.json
+data/tokens/
+.git
+.gitignore
+node_modules
+.env
+.env.local
+.vscode
+.idea
+README.md
+LICENSE
+.DS_Store

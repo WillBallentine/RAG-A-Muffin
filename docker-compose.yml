@@ -34,6 +34,9 @@ services:
     environment:
       - DOTNET_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8000
+    volumes:
+      - ./credentials.json:/app/credentials.json  # mount, never bake into image
+      - ./data/tokens:/app/data/tokens  
 
 volumes:
   qdrant_data:

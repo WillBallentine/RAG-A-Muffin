@@ -51,6 +51,8 @@ var app = builder.Build();
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Starting Rag-A-Muffin application...");
 
+Directory.CreateDirectory("/app/data/tokens");
+
 var initializer = app.Services.GetRequiredService<QdrantCollectionInitializer>();
 await initializer.InitializeAsync();
 // Configure the HTTP request pipeline.
@@ -117,11 +119,19 @@ app.MapGet("/inbox", async (HttpRequest request) =>
             Example = "/inbox?userId=you@example.com"
         });
     }
-
-    if (!await GoogleAuth.HasStoredCredentialAsync(userId))
+    try
     {
-        var authorizationUrl = $"{request.Scheme}://{request.Host}/authorize?userId={Uri.EscapeDataString(userId)}";
-        return Results.BadRequest(new { Message = "No stored credentials found.", AuthorizationUrl = authorizationUrl });
+
+        if (!await GoogleAuth.HasStoredCredentialAsync(userId))
+        {
+            var authorizationUrl = $"{request.Scheme}://{request.Host}/authorize?userId={Uri.EscapeDataString(userId)}";
+            return Results.BadRequest(new { Message = "No stored credentials found.", AuthorizationUrl = authorizationUrl });
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error checking stored credentials for user {UserId}", userId);
+        return Results.Problem(ex.Message);
     }
 
     var gmailService = await GoogleAuth.CreateGmailServiceAsync(userId);
@@ -135,7 +145,9 @@ app.MapGet("/inbox", async (HttpRequest request) =>
         Id = m.Id,
         Subject = parser.GetHeader(m, "Subject"),
         From = parser.GetHeader(m, "From"),
-        BodyPreview = parser.GetBody(m).Substring(0, 100) + "..."
+        BodyPreview = parser.GetBody(m) is var body && body.Length > 0
+        ? body.Substring(0, Math.Min(100, body.Length)) + "..."
+        : "(empty)"
     }));
 });
 

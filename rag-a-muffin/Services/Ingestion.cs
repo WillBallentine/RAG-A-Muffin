@@ -24,6 +24,11 @@ namespace RagAMuffin.Services
             {
                 _logger.LogInformation("Processing email with ID: {EmailId}", message.Id);
                 var parsed = _parser.ParsedEmail(message);
+                if (parsed is null)
+                {
+                    _logger.LogInformation("Skipping message {Id} — empty or too short after parsing", message.Id);
+                    continue;
+                }
                 var chunks = _chunker.Chunk(parsed);
 
                 foreach (var chunk in chunks)

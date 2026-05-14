@@ -22,6 +22,7 @@ Thumbs.db
 # Local configuration files
 credentials.json
 appsettings.Development.json
+data/tokens/
 
 # Docker
 **/docker-compose.override.yml

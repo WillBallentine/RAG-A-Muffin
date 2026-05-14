@@ -17,6 +17,13 @@ namespace RagAMuffin.Services
 
         public List<TextChunk> Chunk(ParsedEmail email)
         {
+            // Guard against null email or empty body
+            if (email is null || string.IsNullOrWhiteSpace(email.Body))
+            {
+                _logger.LogWarning("Chunk called with null or empty email body, returning empty list");
+                return [];
+            }
+
             var words = email.Body.Split(' ');
 
             if (words.Length <= _chunkSize)
