@@ -50,5 +50,7 @@ namespace RagAMuffin.Constants
     public static class GeneralConstants
     {
         public const int MinBodyLength = 30;
+        public const int MaxBodyLength = 8000;
+
     }
 }

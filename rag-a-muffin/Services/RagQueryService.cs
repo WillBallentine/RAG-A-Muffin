@@ -78,9 +78,17 @@ namespace RagAMuffin.Services
                 yield break;
             }
 
-            var prompt = BuildPrompt(request.Query, chunks);
+            var relevantChunks = chunks.Where(c => c.Score > 0.4f).ToList();
 
-           // Stream tokens directly from the LLM
+            if (!relevantChunks.Any())
+            {
+                yield return "I couldn't find any emails related to your question.";
+                yield break;
+            }
+
+            var prompt = BuildPrompt(request.Query, relevantChunks);
+
+            // Stream tokens directly from the LLM
             await foreach (var token in _llm.StreamAsync(prompt, ct))
             {
                 yield return token;
@@ -99,19 +107,17 @@ namespace RagAMuffin.Services
                 $"Content: {c.Text}"));
 
             return $"""
-            You are a helpful assistant with access to a user's emails.
-            Answer the question using only the email context provided below.
-            If the answer isn't in the emails, say so — do not make anything up.
-            Be concise and cite which email(s) your answer comes from.
+        You are an email assistant. Answer the user's question directly and concisely using only the emails below.
+        Do not summarize all emails. Do not list unrelated emails. Just answer the question asked.
+        If the answer is clearly yes or no, say so first, then give relevant details.
 
-            EMAIL CONTEXT:
-            {context}
+        EMAILS:
+        {context}
 
-            QUESTION:
-            {question}
+        QUESTION: {question}
 
-            ANSWER:
-            """;
+        ANSWER:
+        """;
         }
     }
 }

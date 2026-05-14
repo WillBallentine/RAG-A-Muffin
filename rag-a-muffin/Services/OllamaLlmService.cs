@@ -38,7 +38,7 @@ namespace RagAMuffin.Services
             {
                 Content = JsonContent.Create(new
                 {
-                    model = "llama3.2",
+                    model = "llama3",
                     prompt = prompt,
                     stream = true
                 })

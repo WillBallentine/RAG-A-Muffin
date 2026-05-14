@@ -24,8 +24,8 @@ else
   echo "Model pull failed, but continuing..."
 fi
 
-echo "pulling llama3.2 model..."
-if ollama pull llama3.2; then
+echo "pulling llama3 model..."
+if ollama pull llama3; then
   echo "Model pull completed"
 else
   echo "Model pull failed, but continuing..."

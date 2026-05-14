@@ -44,14 +44,22 @@ namespace RagAMuffin.Services
             body = StripSignature(body);
             body = NormalizeWhitespace(body);
 
-
-            if (body.Length < GeneralConstants.MinBodyLength)
-                return null; // or a Result<ParsedEmail> with a skip reason
+            if (body.Length < GeneralConstants.MinBodyLength || IsJunkBody(body))
+            {
+                _logger.LogInformation("Skipping email '{Subject}' — body is too short or junk content",
+                    GetHeader(raw, "Subject"));
+                return null;
+            }
 
             var dateHeader = GetHeader(raw, "Date");
             var parsedDate = ParseEmailDate(dateHeader);
             _logger.LogInformation("Parsed email '{Subject}' from '{From}' dated {Date}. Body length after cleaning: {Length} characters.",
                 GetHeader(raw, "Subject"), GetHeader(raw, "From"), parsedDate, body.Length);
+
+
+            body = body.Length > GeneralConstants.MaxBodyLength
+                ? body[..GeneralConstants.MaxBodyLength]
+                : body;
 
             return new ParsedEmail
             {
@@ -165,6 +173,19 @@ namespace RagAMuffin.Services
             body = string.Join('\n', lines);
 
             return body.Trim();
+        }
+
+        private static bool IsJunkBody(string body)
+        {
+            var words = body.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length == 0) return true;
+
+            var urlCount = words.Count(w =>
+                w.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                w.StartsWith("https://", StringComparison.OrdinalIgnoreCase));
+
+            var urlRatio = (double)urlCount / words.Length;
+            return urlRatio > 0.15; // if more than 15% of words are URLs, it's junk
         }
     }
 }
