@@ -14,7 +14,12 @@ namespace RagAMuffin.Models
         public required string ThreadId { get; init; }
         public required string Subject { get; init; }
         public required string From { get; init; }
+        public required string To { get; init; }
+        public required string Cc { get; init; }
         public required DateTimeOffset Date { get; init; }
+        public required string Labels { get; init; }
+        public required bool HasAttachments { get; init; }
+        public required string Direction { get; init; }
 
         // From the embedder
         public required float[] Vector { get; init; }

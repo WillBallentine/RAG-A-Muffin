@@ -1,5 +1,6 @@
 using RagAMuffin.Models;
 using RagAMuffin.Services.Interfaces;
+using Google.Protobuf.Collections;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
 
@@ -21,22 +22,27 @@ namespace RagAMuffin.Services
         {
             var point = new PointStruct
             {
-                Id = Guid.NewGuid(),        // PointId has implicit cast from Guid
-                Vectors = chunk.Vector,        // implicit cast from float[]
+                Id = Guid.NewGuid(),
+                Vectors = chunk.Vector,
                 Payload =
-            {
-                ["emailId"]     = chunk.EmailId,
-                ["threadId"]    = chunk.ThreadId,
-                ["subject"]     = chunk.Subject,
-                ["from"]        = chunk.From,
-                ["date"]        = chunk.Date.ToString("O"),  // ISO 8601
-                ["chunkIndex"]  = chunk.ChunkIndex,
-                ["totalChunks"] = chunk.TotalChunks,
-                ["text"]        = chunk.Text
-            }
+                {
+                    ["emailId"]        = chunk.EmailId,
+                    ["threadId"]       = chunk.ThreadId,
+                    ["subject"]        = chunk.Subject,
+                    ["from"]           = chunk.From,
+                    ["to"]             = chunk.To,
+                    ["cc"]             = chunk.Cc,
+                    ["date"]           = chunk.Date.ToString("O"),
+                    ["labels"]         = chunk.Labels,
+                    ["hasAttachments"] = chunk.HasAttachments ? 1 : 0,
+                    ["direction"]      = chunk.Direction,
+                    ["chunkIndex"]     = chunk.ChunkIndex,
+                    ["totalChunks"]    = chunk.TotalChunks,
+                    ["text"]           = chunk.Text
+                }
             };
-            _logger.LogInformation("Upserting chunk for email '{EmailId}' with ID: {ChunkId}", chunk.EmailId, point.Id);
 
+            _logger.LogInformation("Upserting chunk for email '{EmailId}' [{Direction}]", chunk.EmailId, chunk.Direction);
             await _client.UpsertAsync(CollectionName, [point], cancellationToken: ct);
         }
 
@@ -49,35 +55,56 @@ namespace RagAMuffin.Services
                 cancellationToken: ct
             );
 
-            return results.Select(r => new ScoredChunk
-            {
-                EmailId = r.Payload["emailId"].StringValue,
-                ThreadId = r.Payload["threadId"].StringValue,
-                Subject = r.Payload["subject"].StringValue,
-                From = r.Payload["from"].StringValue,
-                Date = r.Payload["date"].StringValue,
-                Text = r.Payload["text"].StringValue,
-                Score = r.Score
-            }).ToList();
+            return results.Select(r => MapPayload(r.Payload, r.Score)).ToList();
+        }
+
+        public async Task<List<ScoredChunk>> ScrollBySenderAsync(string field, string name, int limit, CancellationToken ct = default)
+        {
+            // Uses the full-text payload index created at startup.
+            // Match { Text } tokenizes the name and does word-level matching on the field,
+            // so "Mike Maseda" finds "Mike Maseda <mike@example.com>" correctly.
+            // Dummy zero vector because we're filtering by payload, not by similarity.
+            var results = await _client.SearchAsync(
+                CollectionName,
+                new float[768],
+                filter: new Filter
+                {
+                    Must =
+                    {
+                        new Condition
+                        {
+                            Field = new FieldCondition
+                            {
+                                Key   = field,
+                                Match = new Match { Text = name }
+                            }
+                        }
+                    }
+                },
+                limit: (ulong)limit,
+                cancellationToken: ct
+            );
+
+            return results.Select(r => MapPayload(r.Payload, 1.0f)).ToList();
         }
 
         public async Task<bool> EmailExistsAsync(string emailId, CancellationToken ct = default)
         {
             var results = await _client.SearchAsync(
                 CollectionName,
-                new float[768], // dummy vector — we're filtering by payload not similarity
+                new float[768],
                 filter: new Filter
                 {
                     Must =
                     {
-                new Condition
-                {
-                    Field = new FieldCondition
-                    {
-                        Key   = "emailId",
-                        Match = new Match { Text = emailId }
-                    }
-                }
+                        new Condition
+                        {
+                            Field = new FieldCondition
+                            {
+                                Key   = "emailId",
+                                Match = new Match { Text = emailId }
+                            }
+                        }
                     }
                 },
                 limit: 1,
@@ -89,21 +116,37 @@ namespace RagAMuffin.Services
 
         public async Task DeleteByEmailIdAsync(string emailId, CancellationToken ct = default)
         {
-            // Delete all chunks belonging to an email using a payload filter
             await _client.DeleteAsync(CollectionName, new Filter
             {
                 Must =
-            {
-                new Condition
                 {
-                    Field = new FieldCondition
+                    new Condition
                     {
-                        Key   = "emailId",
-                        Match = new Match { Text = emailId }
+                        Field = new FieldCondition
+                        {
+                            Key   = "emailId",
+                            Match = new Match { Text = emailId }
+                        }
                     }
                 }
-            }
             }, cancellationToken: ct);
         }
+
+        private static ScoredChunk MapPayload(MapField<string, Value> payload, float score) =>
+            new ScoredChunk
+            {
+                EmailId        = payload["emailId"].StringValue,
+                ThreadId       = payload["threadId"].StringValue,
+                Subject        = payload["subject"].StringValue,
+                From           = payload["from"].StringValue,
+                To             = payload["to"].StringValue,
+                Cc             = payload["cc"].StringValue,
+                Date           = payload["date"].StringValue,
+                Labels         = payload["labels"].StringValue,
+                HasAttachments = payload["hasAttachments"].IntegerValue > 0,
+                Direction      = payload["direction"].StringValue,
+                Text           = payload["text"].StringValue,
+                Score          = score
+            };
     }
 }

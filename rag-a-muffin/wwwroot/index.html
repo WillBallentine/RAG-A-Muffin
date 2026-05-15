@@ -940,7 +940,7 @@
       const res = await fetch(`${API_BASE}/query/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, topK: 5 })
+        body: JSON.stringify({ query, topK: 8 })
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -951,6 +951,7 @@
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+      let eventType = 'message';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -961,12 +962,25 @@
         buffer = lines.pop();
 
         for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
+          if (line.startsWith('event: ')) {
+            eventType = line.slice(7).trim();
+            continue;
+          }
+          if (!line.startsWith('data: ')) {
+            if (line === '') eventType = 'message';
+            continue;
+          }
           const payload = line.slice(6);
           if (payload === '[DONE]') break;
-          answer += payload;
-          bubbleEl.textContent = answer;
-          scrollToBottom();
+
+          if (eventType === 'citations') {
+            try { renderCitations(bubbleEl, JSON.parse(payload)); } catch {}
+            eventType = 'message';
+          } else {
+            answer += payload;
+            bubbleEl.textContent = answer;
+            scrollToBottom();
+          }
         }
       }
 
@@ -1037,6 +1051,52 @@
   function scrollToBottom() {
     const chat = document.getElementById('chat');
     chat.scrollTop = chat.scrollHeight;
+  }
+
+  function renderCitations(bubbleEl, citations) {
+    if (!citations || citations.length === 0) return;
+    const msg = bubbleEl.parentElement;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'citations';
+
+    const label = document.createElement('div');
+    label.className = 'citation-label';
+    label.textContent = 'sources';
+    wrapper.appendChild(label);
+
+    for (const c of citations) {
+      const card = document.createElement('div');
+      card.className = 'citation';
+      const isSent = c.direction === 'sent';
+      const dirArrow = isSent ? '↑' : '↓';
+      const counterparty = isSent
+        ? `To: ${escapeHtml(c.to || '(unknown)')}`
+        : escapeHtml(c.from || '(unknown)');
+      const attachLine = c.hasAttachments
+        ? `<div class="citation-from" style="color:var(--text-muted)">📎 has attachment</div>`
+        : '';
+      card.innerHTML =
+        `<div class="citation-subject">${escapeHtml(c.subject)}</div>` +
+        `<div class="citation-date">${formatDate(c.date)}</div>` +
+        `<div class="citation-from">${dirArrow} ${counterparty}</div>` +
+        attachLine;
+      wrapper.appendChild(card);
+    }
+
+    msg.appendChild(wrapper);
+    scrollToBottom();
+  }
+
+  function escapeHtml(str) {
+    return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    try {
+      return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch { return iso; }
   }
 
   // ── Toast ────────────────────────────────────────────────

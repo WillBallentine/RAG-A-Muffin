@@ -1,20 +1,20 @@
-using RagAMuffin.Models;
-using RagAMuffin.Constants;
-using Google.Apis.Auth.OAuth2;
 using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
-using Google.Apis.Services;
-using Google.Apis.Util.Store;
-using System.Text.RegularExpressions;
 
 namespace RagAMuffin.Services.ExternalApps
 {
     public class Gmail
     {
-        public static async Task<List<Message>> FetchInboxAsync(GmailService service, int maxResults = 20)
+        public static Task<List<Message>> FetchInboxAsync(GmailService service, int maxResults = 100)
+            => FetchAsync(service, "INBOX", maxResults);
+
+        public static Task<List<Message>> FetchSentAsync(GmailService service, int maxResults = 100)
+            => FetchAsync(service, "SENT", maxResults);
+
+        public static async Task<List<Message>> FetchAsync(GmailService service, string label, int maxResults = 100)
         {
             var listRequest = service.Users.Messages.List("me");
-            listRequest.LabelIds = "INBOX";
+            listRequest.LabelIds = label;
             listRequest.MaxResults = maxResults;
 
             var listResponse = await listRequest.ExecuteAsync();
@@ -24,7 +24,6 @@ namespace RagAMuffin.Services.ExternalApps
 
             foreach (var msgRef in listResponse.Messages)
             {
-                // List only returns ID + threadId; fetch full message separately
                 var fullMessage = await service.Users.Messages
                     .Get("me", msgRef.Id)
                     .ExecuteAsync();
@@ -34,7 +33,5 @@ namespace RagAMuffin.Services.ExternalApps
 
             return messages;
         }
-
-
     }
 }

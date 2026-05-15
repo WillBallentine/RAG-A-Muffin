@@ -25,21 +25,29 @@ namespace RagAMuffin.Services
 
         public string GetBody(Message message)
         {
-            var part = message.Payload.Parts?
-                .FirstOrDefault(p => p.MimeType == "text/plain")
-                ?? message.Payload;
+            // 1. Prefer text/plain from parts (most reliable, already clean text)
+            var plainPart = message.Payload.Parts?.FirstOrDefault(p => p.MimeType == "text/plain");
+            if (plainPart?.Body?.Data != null)
+                return DecodeBase64(plainPart.Body.Data);
 
-            if (part?.Body?.Data == null) return string.Empty;
+            // 2. Fall back to text/html from parts, stripping markup
+            var htmlPart = message.Payload.Parts?.FirstOrDefault(p => p.MimeType == "text/html");
+            if (htmlPart?.Body?.Data != null)
+                return StripHtml(DecodeBase64(htmlPart.Body.Data));
 
-            // Gmail uses URL-safe base64
-            var base64 = part.Body.Data.Replace('-', '+').Replace('_', '/');
-            var bytes = Convert.FromBase64String(base64);
-            return System.Text.Encoding.UTF8.GetString(bytes);
+            // 3. Non-multipart email — payload body is the content
+            if (message.Payload?.Body?.Data != null)
+            {
+                var text = DecodeBase64(message.Payload.Body.Data);
+                return text.TrimStart().StartsWith('<') ? StripHtml(text) : text;
+            }
+
+            return string.Empty;
         }
 
         public ParsedEmail ParsedEmail(Message raw)
         {
-            var body = GetBody(raw);         // prefer text/plain, fall back to text/html
+            var body = GetBody(raw);
             body = StripQuotedReplies(body);
             body = StripSignature(body);
             body = NormalizeWhitespace(body);
@@ -53,23 +61,70 @@ namespace RagAMuffin.Services
 
             var dateHeader = GetHeader(raw, "Date");
             var parsedDate = ParseEmailDate(dateHeader);
-            _logger.LogInformation("Parsed email '{Subject}' from '{From}' dated {Date}. Body length after cleaning: {Length} characters.",
-                GetHeader(raw, "Subject"), GetHeader(raw, "From"), parsedDate, body.Length);
-
 
             body = body.Length > GeneralConstants.MaxBodyLength
                 ? body[..GeneralConstants.MaxBodyLength]
                 : body;
+
+            var labelIds = raw.LabelIds ?? [];
+            var direction = labelIds.Contains("SENT") ? "sent" : "received";
+            var labels = FormatLabels(labelIds);
+            var hasAttachments = DetectAttachments(raw);
+
+            _logger.LogInformation(
+                "Parsed email '{Subject}' [{Direction}] from '{From}' dated {Date}. " +
+                "Body: {Length} chars, Attachments: {HasAttachments}",
+                GetHeader(raw, "Subject"), direction, GetHeader(raw, "From"),
+                parsedDate, body.Length, hasAttachments);
 
             return new ParsedEmail
             {
                 Id = raw.Id,
                 Subject = GetHeader(raw, "Subject"),
                 From = GetHeader(raw, "From"),
+                To = GetHeader(raw, "To"),
+                Cc = GetHeader(raw, "Cc"),
                 Date = parsedDate,
                 Body = body,
-                ThreadId = raw.ThreadId
+                ThreadId = raw.ThreadId,
+                Labels = labels,
+                HasAttachments = hasAttachments,
+                Direction = direction
             };
+        }
+
+        private static string FormatLabels(IList<string> labelIds)
+        {
+            if (labelIds == null) return string.Empty;
+            // Keep only user-meaningful labels — skip system noise like UNREAD, CATEGORY_*
+            var meaningful = new HashSet<string> { "STARRED", "IMPORTANT", "SENT", "INBOX" };
+            return string.Join(", ", labelIds.Where(l => meaningful.Contains(l)));
+        }
+
+        private static bool DetectAttachments(Message message)
+        {
+            return message.Payload?.Parts?.Any(p =>
+                !string.IsNullOrEmpty(p.Filename) &&
+                p.MimeType != "text/plain" &&
+                p.MimeType != "text/html") == true;
+        }
+
+        private static string DecodeBase64(string data)
+        {
+            var base64 = data.Replace('-', '+').Replace('_', '/');
+            return System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(base64));
+        }
+
+        private static string StripHtml(string html)
+        {
+            // Drop style/script blocks wholesale — they're pure noise
+            html = Regex.Replace(html, @"<style[^>]*>.*?</style>", " ", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            html = Regex.Replace(html, @"<script[^>]*>.*?</script>", " ", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            // Block-level elements become line breaks so paragraphs stay readable
+            html = Regex.Replace(html, @"<(br|p|div|tr|li|h[1-6]|td|th)[^>]*/?>", "\n", RegexOptions.IgnoreCase);
+            // Strip all remaining tags
+            html = Regex.Replace(html, @"<[^>]+>", " ");
+            return System.Net.WebUtility.HtmlDecode(html);
         }
 
         private static string StripQuotedReplies(string body)
@@ -82,25 +137,20 @@ namespace RagAMuffin.Services
                 var match = pattern.Match(body);
                 if (match.Success)
                 {
-                    // Truncate everything from the first quote marker onward
                     body = body[..match.Index].TrimEnd();
-                    break; // First match wins — don't double-truncate
+                    break;
                 }
             }
 
-            // Strip any remaining "> " prefixed lines throughout
             body = Regex.Replace(body, @"^>.*$", "", RegexOptions.Multiline);
-
             return body;
         }
-
 
         private static string StripSignature(string body)
         {
             if (string.IsNullOrWhiteSpace(body))
                 return body;
 
-            // 1. Check explicit delimiters first — most reliable
             foreach (var delimiter in StringPatterns.SignatureDelimiters)
             {
                 var index = body.IndexOf(delimiter, StringComparison.Ordinal);
@@ -108,9 +158,6 @@ namespace RagAMuffin.Services
                     return body[..index].TrimEnd();
             }
 
-            // 2. Fall back to heuristics — scan the last 10 lines only
-            //    Signatures are always at the bottom; scanning the whole body
-            //    risks false positives in the actual email content
             var lines = body.Split('\n');
             var scanFrom = Math.Max(0, lines.Length - 10);
 
@@ -122,10 +169,7 @@ namespace RagAMuffin.Services
                 foreach (var pattern in RegexPatterns.SignaturePatterns)
                 {
                     if (pattern.IsMatch(line))
-                    {
-                        // Rejoin everything before this line
                         return string.Join('\n', lines[..i]).TrimEnd();
-                    }
                 }
             }
 
@@ -137,15 +181,13 @@ namespace RagAMuffin.Services
             if (string.IsNullOrWhiteSpace(value))
                 return DateTime.UtcNow;
 
-            if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal, out var parsed))
-            {
+            if (DateTime.TryParse(value, CultureInfo.InvariantCulture,
+                    DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal, out var parsed))
                 return parsed;
-            }
 
-            if (DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal, out var dto))
-            {
+            if (DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture,
+                    DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal, out var dto))
                 return dto.UtcDateTime;
-            }
 
             return DateTime.UtcNow;
         }
@@ -155,24 +197,15 @@ namespace RagAMuffin.Services
             if (string.IsNullOrWhiteSpace(body))
                 return string.Empty;
 
-            // Normalize line endings to \n
             body = body.Replace("\r\n", "\n").Replace("\r", "\n");
-
-            // Collapse 3+ consecutive blank lines down to 2
-            // (preserve paragraph breaks, kill excessive whitespace)
             body = Regex.Replace(body, @"\n{3,}", "\n\n");
-
-            // Collapse multiple spaces/tabs on a single line to one space
             body = Regex.Replace(body, @"[ \t]{2,}", " ");
 
-            // Trim leading/trailing whitespace per line
             var lines = body.Split('\n')
                             .Select(l => l.Trim())
                             .ToArray();
 
-            body = string.Join('\n', lines);
-
-            return body.Trim();
+            return string.Join('\n', lines).Trim();
         }
 
         private static bool IsJunkBody(string body)
@@ -184,8 +217,7 @@ namespace RagAMuffin.Services
                 w.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                 w.StartsWith("https://", StringComparison.OrdinalIgnoreCase));
 
-            var urlRatio = (double)urlCount / words.Length;
-            return urlRatio > 0.15; // if more than 15% of words are URLs, it's junk
+            return (double)urlCount / words.Length > 0.15;
         }
     }
 }

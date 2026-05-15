@@ -19,25 +19,38 @@ obj/
 .DS_Store
 Thumbs.db
 
-# Local configuration files
+# ── Sensitive / local config ──────────────────────────────────────────────────
+# Google OAuth client secrets — never commit
 credentials.json
-appsettings.Development.json
-data/tokens/
 
-# Docker
+# Per-developer overrides (connection strings, local ports, etc.)
+appsettings.Development.json
+appsettings.local.json
+appsettings.*.local.json
+
+# NOTE: appsettings.json IS committed (base config) but contains Ingestion:UserId.
+# If this repo becomes public, move UserId to appsettings.local.json instead.
+
+# OAuth tokens written at runtime
+data/
+**/data/tokens/
+
+# ── Docker ────────────────────────────────────────────────────────────────────
 **/docker-compose.override.yml
 **/docker-compose.*.override.yml
 
-# NuGet packages
+# ── NuGet ─────────────────────────────────────────────────────────────────────
 *.nupkg
 packages/
 .nuget/
 
-# Visual Studio cache
+# ── IDE / tool caches ─────────────────────────────────────────────────────────
 *.cache
+*.lscache
 *.vs/
+.vs/
 
-# Generated files
+# ── Generated files ───────────────────────────────────────────────────────────
 *.g.cs
 *.g.i.cs
 *.generated.cs
@@ -45,22 +58,15 @@ packages/
 *Generated.*
 **/Generated/
 *.swagger.json
+
+# ── Temp / scratch ────────────────────────────────────────────────────────────
 *.tmp
 *.temp
 *~
+*.pid
+*.seed
 
-# User-specific files
+# ── Visual Studio / Rider user-specific ──────────────────────────────────────
 *.psess
 *.vspx
 *.userprefs
-
-# Logs
-*.log
-
-# Publish output
-publish/
-out/
-
-# Local Docker / runtime artifacts
-*.pid
-*.seed
