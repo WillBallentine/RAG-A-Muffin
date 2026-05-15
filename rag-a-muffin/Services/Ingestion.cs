@@ -1,6 +1,5 @@
 using RagAMuffin.Services.Interfaces;
 using RagAMuffin.Models;
-using Google.Apis.Gmail.v1.Data;
 using System.Text;
 
 namespace RagAMuffin.Services
@@ -8,85 +7,86 @@ namespace RagAMuffin.Services
     public class IngestionPipeline : IIngestionPipeline
     {
         private readonly ILogger<IngestionPipeline> _logger;
-        private readonly IEmailParser _parser;
         private readonly IChunker _chunker;
         private readonly IEmbeddingService _embedder;
         private readonly IVectorStore _vectorStore;
 
-        public IngestionPipeline(ILogger<IngestionPipeline> logger, IEmailParser parser, IChunker chunker, IEmbeddingService embedder, IVectorStore vectorStore)
+        public IngestionPipeline(
+            ILogger<IngestionPipeline> logger,
+            IChunker chunker,
+            IEmbeddingService embedder,
+            IVectorStore vectorStore)
         {
             _logger = logger;
-            _parser = parser;
             _chunker = chunker;
             _embedder = embedder;
             _vectorStore = vectorStore;
         }
 
-        public async Task IngestAsync(IEnumerable<Message> messages)
+        public async Task IngestAsync(IEnumerable<SourceDocument> documents, CancellationToken ct = default)
         {
-            foreach (var message in messages)
+            foreach (var doc in documents)
             {
-                _logger.LogInformation("Processing email with ID: {EmailId}", message.Id);
-                var parsed = _parser.ParsedEmail(message);
-                if (parsed is null)
+                _logger.LogInformation("Processing [{SourceType}] '{Title}'", doc.SourceType, doc.Title);
+
+                if (await _vectorStore.DocumentExistsAsync(doc.Id, ct))
                 {
-                    _logger.LogInformation("Skipping message {Id} — empty or too short after parsing", message.Id);
+                    _logger.LogInformation("Document {Id} already ingested, skipping", doc.Id);
                     continue;
                 }
 
-                if (await _vectorStore.EmailExistsAsync(parsed.Id))
+                var chunks = _chunker.Chunk(doc);
+                if (chunks.Count == 0)
                 {
-                    _logger.LogInformation("Email {EmailId} already ingested, skipping", parsed.Id);
+                    _logger.LogInformation("Skipping '{Title}' — empty after chunking", doc.Title);
                     continue;
                 }
 
-                var chunks = _chunker.Chunk(parsed);
                 foreach (var chunk in chunks)
                 {
                     float[] vector;
                     try
                     {
-                        vector = await _embedder.EmbedAsync(BuildEmbedText(parsed, chunk.Text));
+                        vector = await _embedder.EmbedAsync(BuildEmbedText(doc, chunk.Text), ct);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to embed chunk {ChunkIndex} for email {EmailId}. Skipping.", chunk.Index, parsed.Id);
+                        _logger.LogError(ex, "Failed to embed chunk {ChunkIndex} for '{Title}'. Skipping.", chunk.Index, doc.Title);
                         continue;
                     }
 
                     await _vectorStore.UpsertAsync(new EmbeddedChunk
                     {
-                        EmailId = parsed.Id,
-                        ThreadId = parsed.ThreadId,
-                        Subject = parsed.Subject,
-                        From = parsed.From,
-                        To = parsed.To,
-                        Cc = parsed.Cc,
-                        Date = parsed.Date,
-                        Labels = parsed.Labels,
-                        HasAttachments = parsed.HasAttachments,
-                        Direction = parsed.Direction,
-                        ChunkIndex = chunk.Index,
-                        Text = chunk.Text,
+                        DocumentId  = doc.Id,
+                        SourceType  = doc.SourceType,
+                        Title       = doc.Title,
+                        Author      = doc.Author,
+                        Recipient   = doc.Recipient,
+                        Cc          = doc.Cc,
+                        Url         = doc.Url,
+                        PublishedAt = doc.PublishedAt,
+                        Metadata    = doc.Metadata,
+                        ChunkIndex  = chunk.Index,
                         TotalChunks = chunk.TotalChunks,
-                        Vector = vector
-                    });
+                        Text        = chunk.Text,
+                        Vector      = vector
+                    }, ct);
                 }
             }
         }
 
-        private static string BuildEmbedText(ParsedEmail email, string chunkText)
+        private static string BuildEmbedText(SourceDocument doc, string chunkText)
         {
             var sb = new StringBuilder();
-            sb.AppendLine($"From: {email.From}");
-            if (!string.IsNullOrWhiteSpace(email.To))
-                sb.AppendLine($"To: {email.To}");
-            if (!string.IsNullOrWhiteSpace(email.Cc))
-                sb.AppendLine($"Cc: {email.Cc}");
-            sb.AppendLine($"Subject: {email.Subject}");
-            if (!string.IsNullOrWhiteSpace(email.Labels))
-                sb.AppendLine($"Labels: {email.Labels}");
-            if (email.HasAttachments)
+            sb.AppendLine($"From: {doc.Author}");
+            if (!string.IsNullOrWhiteSpace(doc.Recipient))
+                sb.AppendLine($"To: {doc.Recipient}");
+            if (!string.IsNullOrWhiteSpace(doc.Cc))
+                sb.AppendLine($"Cc: {doc.Cc}");
+            sb.AppendLine($"Subject: {doc.Title}");
+            if (doc.Metadata.TryGetValue("labels", out var labels) && !string.IsNullOrWhiteSpace(labels))
+                sb.AppendLine($"Labels: {labels}");
+            if (doc.Metadata.TryGetValue("hasAttachments", out var att) && att == "true")
                 sb.AppendLine("Has attachments: yes");
             sb.AppendLine();
             sb.Append(chunkText);

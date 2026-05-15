@@ -2,17 +2,16 @@ namespace RagAMuffin.Models
 {
     public class ScoredChunk
     {
-        public required string EmailId { get; init; }
-        public required string ThreadId { get; init; }
-        public required string Subject { get; init; }
-        public required string From { get; init; }
-        public required string To { get; init; }
-        public required string Cc { get; init; }
-        public required string Date { get; init; }
+        public required string DocumentId { get; init; }
+        public required string SourceType { get; init; }
+        public required string Title { get; init; }
+        public required string Author { get; init; }
+        public string? Recipient { get; init; }
+        public string? Url { get; init; }
+        public required string PublishedAt { get; init; }
         public required string Text { get; init; }
-        public required string Labels { get; init; }
-        public required bool HasAttachments { get; init; }
-        public required string Direction { get; init; }
+        // Source-specific extras deserialized from Qdrant payload
+        public Dictionary<string, string> Metadata { get; init; } = new();
         public required float Score { get; init; }
     }
 }

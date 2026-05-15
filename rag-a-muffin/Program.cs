@@ -3,6 +3,7 @@ using RagAMuffin.Auth;
 using RagAMuffin.Services.ExternalApps;
 using RagAMuffin.Services.Interfaces;
 using RagAMuffin.Services;
+using RagAMuffin.Services.Connectors;
 using RagAMuffin.Qdrant;
 using Qdrant.Client;
 
@@ -19,7 +20,7 @@ builder.Services.AddHttpClient<IEmbeddingService, OllamaEmbeddingService>(client
 builder.Services.AddHttpClient<ILlmService, OllamaLlmService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Ollama:BaseUrl"]!);
-    client.Timeout = TimeSpan.FromMinutes(10); // LLMs can be slow locally
+    client.Timeout = TimeSpan.FromMinutes(10);
 });
 
 var qdrantHost = builder.Configuration["Qdrant:Host"] ?? "qdrant";
@@ -34,7 +35,11 @@ builder.Services.AddScoped<IVectorStore, QdrantVectorStore>();
 builder.Services.AddScoped<IChunker>(sp => new TextChunker(sp.GetRequiredService<ILogger<TextChunker>>(), 100, 25));
 builder.Services.AddScoped<IEmailParser, EmailParser>();
 builder.Services.AddScoped<IIngestionPipeline, IngestionPipeline>();
-builder.Services.AddHostedService<EmailSyncService>();
+
+// Connectors — add more here as new source types are implemented
+builder.Services.AddScoped<IConnector, GmailConnector>();
+
+builder.Services.AddHostedService<ConnectorSyncService>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -56,31 +61,22 @@ Directory.CreateDirectory("/app/data/tokens");
 
 var initializer = app.Services.GetRequiredService<QdrantCollectionInitializer>();
 await initializer.InitializeAsync();
-// Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseDefaultFiles();  // serves index.html at /
-app.UseStaticFiles();   // serves wwwroot contents
-
-
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseCors();
 
-//this is for testing purposes only. need to implement proper onboarding flow
 app.MapGet("/authorize", async (HttpRequest request) =>
 {
     var userId = request.Query["userId"].ToString();
     if (string.IsNullOrWhiteSpace(userId))
-    {
-        return Results.BadRequest(new
-        {
-            Message = "Missing required query parameter 'userId'.",
-            Example = "/authorize?userId=you@example.com"
-        });
-    }
+        return Results.BadRequest(new { Message = "Missing 'userId'.", Example = "/authorize?userId=you@example.com" });
 
     var redirectUri = $"{request.Scheme}://{request.Host}/oauth2callback";
     var authUrl = await GoogleAuth.GetAuthorizationUrlAsync(userId, redirectUri);
@@ -91,64 +87,65 @@ app.MapGet("/oauth2callback", async (HttpRequest request, string code, string? u
 {
     var resolvedUserId = userId;
     if (string.IsNullOrWhiteSpace(resolvedUserId) && !string.IsNullOrWhiteSpace(state))
-    {
         resolvedUserId = Uri.UnescapeDataString(state);
-    }
 
     if (string.IsNullOrWhiteSpace(resolvedUserId))
-    {
-        return Results.BadRequest(new
-        {
-            Message = "Missing required userId. Provide either query parameter 'userId' or let Google return the OAuth state.",
-            Example = "/oauth2callback?code=...&userId=you@example.com"
-        });
-    }
+        return Results.BadRequest(new { Message = "Missing userId.", Example = "/oauth2callback?code=...&userId=you@example.com" });
 
     var redirectUri = $"{request.Scheme}://{request.Host}/oauth2callback";
     await GoogleAuth.ExchangeCodeForTokenAsync(resolvedUserId, code, redirectUri);
     return Results.Text("Authentication complete. You may close this page.");
 });
 
-app.MapGet("/inbox", async (HttpRequest request) =>
+// Dev endpoint: triggers an immediate Gmail sync for the configured user
+app.MapGet("/inbox", async (HttpRequest request, IIngestionPipeline pipeline, IEmailParser parser) =>
 {
     var userId = request.Query["userId"].ToString();
     if (string.IsNullOrWhiteSpace(userId))
-    {
-        return Results.BadRequest(new
-        {
-            Message = "Missing required query parameter 'userId'.",
-            Example = "/inbox?userId=you@example.com"
-        });
-    }
-    try
-    {
+        return Results.BadRequest(new { Message = "Missing 'userId'.", Example = "/inbox?userId=you@example.com" });
 
-        if (!await GoogleAuth.HasStoredCredentialAsync(userId))
-        {
-            var authorizationUrl = $"{request.Scheme}://{request.Host}/authorize?userId={Uri.EscapeDataString(userId)}";
-            return Results.BadRequest(new { Message = "No stored credentials found.", AuthorizationUrl = authorizationUrl });
-        }
-    }
-    catch (Exception ex)
+    if (!await GoogleAuth.HasStoredCredentialAsync(userId))
     {
-        logger.LogError(ex, "Error checking stored credentials for user {UserId}", userId);
-        return Results.Problem(ex.Message);
+        var authUrl = $"{request.Scheme}://{request.Host}/authorize?userId={Uri.EscapeDataString(userId)}";
+        return Results.BadRequest(new { Message = "No stored credentials.", AuthorizationUrl = authUrl });
     }
 
     var gmailService = await GoogleAuth.CreateGmailServiceAsync(userId);
     var messages = await Gmail.FetchInboxAsync(gmailService, maxResults: 10);
-    var parser = new EmailParser(app.Services.GetRequiredService<ILogger<EmailParser>>());
-    logger.LogInformation("Fetched {Count} messages for user {UserId}. Starting ingestion...", messages.Count(), userId);
-    var ingestionPipeline = app.Services.GetRequiredService<IIngestionPipeline>();
-    await ingestionPipeline.IngestAsync(messages);
-    return Results.Ok(messages.Select(m => new
+
+    logger.LogInformation("Fetched {Count} messages for {UserId}. Starting ingestion...", messages.Count, userId);
+
+    var documents = messages
+        .Select(m => parser.ParsedEmail(m))
+        .Where(p => p is not null)
+        .Select(p => new SourceDocument
+        {
+            Id          = p!.Id,
+            SourceType  = "gmail",
+            Title       = p.Subject,
+            Author      = p.From,
+            Recipient   = p.To,
+            Cc          = p.Cc,
+            Body        = p.Body,
+            PublishedAt = p.Date,
+            Metadata    = new Dictionary<string, string>
+            {
+                ["threadId"]       = p.ThreadId ?? string.Empty,
+                ["labels"]         = p.Labels ?? string.Empty,
+                ["hasAttachments"] = p.HasAttachments ? "true" : "false",
+                ["direction"]      = p.Direction ?? "received"
+            }
+        })
+        .ToList();
+
+    await pipeline.IngestAsync(documents);
+
+    return Results.Ok(documents.Select(d => new
     {
-        Id = m.Id,
-        Subject = parser.GetHeader(m, "Subject"),
-        From = parser.GetHeader(m, "From"),
-        BodyPreview = parser.GetBody(m) is var body && body.Length > 0
-        ? body.Substring(0, Math.Min(100, body.Length)) + "..."
-        : "(empty)"
+        id      = d.Id,
+        title   = d.Title,
+        author  = d.Author,
+        preview = d.Body.Length > 100 ? d.Body[..100] + "..." : d.Body
     }));
 });
 
@@ -166,7 +163,6 @@ app.MapPost("/query/stream", async (QueryRequest request, IRagQueryService query
 
     await foreach (var token in queryService.StreamQueryAsync(request, ct))
     {
-        // Citations are emitted as a tagged final token, not as LLM text
         if (token.StartsWith("[CITATIONS]:"))
         {
             await ctx.Response.WriteAsync($"event: citations\ndata: {token["[CITATIONS]:".Length..]}\n\n", ct);

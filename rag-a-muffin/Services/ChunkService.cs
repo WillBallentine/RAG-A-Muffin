@@ -5,9 +5,10 @@ namespace RagAMuffin.Services
 {
     public class TextChunker : IChunker
     {
-        private readonly int _chunkSize;    // e.g. 200 words for safer embed input length
-        private readonly int _overlap;      // e.g. 50 words
+        private readonly int _chunkSize;
+        private readonly int _overlap;
         private readonly ILogger<TextChunker> _logger;
+
         public TextChunker(ILogger<TextChunker> logger, int chunkSize = 200, int overlap = 50)
         {
             _logger = logger;
@@ -15,36 +16,35 @@ namespace RagAMuffin.Services
             _overlap = overlap;
         }
 
-        public List<TextChunk> Chunk(ParsedEmail email)
+        public List<TextChunk> Chunk(SourceDocument document)
         {
-            // Guard against null email or empty body
-            if (email is null || string.IsNullOrWhiteSpace(email.Body))
+            if (document is null || string.IsNullOrWhiteSpace(document.Body))
             {
-                _logger.LogWarning("Chunk called with null or empty email body, returning empty list");
+                _logger.LogWarning("Chunk called with null or empty body, returning empty list");
                 return [];
             }
 
-            var words = email.Body.Split(' ');
+            var words = document.Body.Split(' ');
 
             if (words.Length <= _chunkSize)
             {
-                return new List<TextChunk>
-                {
+                return
+                [
                     new TextChunk
                     {
-                        Text = email.Body,
+                        Text = document.Body,
                         Index = 0,
                         TotalChunks = 1,
                         CharStart = 0,
-                        CharEnd = email.Body.Length
+                        CharEnd = document.Body.Length
                     }
-                };
+                ];
             }
 
             var totalChunks = Math.Max(1,
                 (int)Math.Ceiling((double)(words.Length - _overlap) / (_chunkSize - _overlap)));
 
-            var chunks = new List<TextChunk>(totalChunks); // capacity hint is a nice touch
+            var chunks = new List<TextChunk>(totalChunks);
             var index = 0;
             var position = 0;
 
@@ -58,14 +58,15 @@ namespace RagAMuffin.Services
                     Text = text,
                     Index = index++,
                     TotalChunks = totalChunks,
-                    CharStart = position,       // note: this is word position, not char position
+                    CharStart = position,
                     CharEnd = position + slice.Length
                 });
 
                 position += _chunkSize - _overlap;
             }
-            _logger.LogInformation("Chunked email '{Subject}' into {ChunkCount} chunks (chunk size: {ChunkSize} words, overlap: {Overlap} words).",
-                email.Subject, chunks.Count, _chunkSize, _overlap);
+
+            _logger.LogInformation("Chunked '{Title}' into {ChunkCount} chunks ({ChunkSize} words, {Overlap} overlap).",
+                document.Title, chunks.Count, _chunkSize, _overlap);
 
             return chunks;
         }

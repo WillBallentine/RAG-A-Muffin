@@ -1071,13 +1071,13 @@
       const isSent = c.direction === 'sent';
       const dirArrow = isSent ? '↑' : '↓';
       const counterparty = isSent
-        ? `To: ${escapeHtml(c.to || '(unknown)')}`
-        : escapeHtml(c.from || '(unknown)');
+        ? `To: ${escapeHtml(c.recipient || '(unknown)')}`
+        : escapeHtml(c.author || '(unknown)');
       const attachLine = c.hasAttachments
         ? `<div class="citation-from" style="color:var(--text-muted)">📎 has attachment</div>`
         : '';
       card.innerHTML =
-        `<div class="citation-subject">${escapeHtml(c.subject)}</div>` +
+        `<div class="citation-subject">${escapeHtml(c.title)}</div>` +
         `<div class="citation-date">${formatDate(c.date)}</div>` +
         `<div class="citation-from">${dirArrow} ${counterparty}</div>` +
         attachLine;

@@ -3,13 +3,14 @@ using RagAMuffin.Services.Interfaces;
 using Google.Protobuf.Collections;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
+using System.Text.Json;
 
 namespace RagAMuffin.Services
 {
     public class QdrantVectorStore : IVectorStore
     {
         private readonly QdrantClient _client;
-        private const string CollectionName = "emails";
+        private const string CollectionName = "documents";
         private readonly ILogger<QdrantVectorStore> _logger;
 
         public QdrantVectorStore(ILogger<QdrantVectorStore> logger, QdrantClient client)
@@ -26,23 +27,23 @@ namespace RagAMuffin.Services
                 Vectors = chunk.Vector,
                 Payload =
                 {
-                    ["emailId"]        = chunk.EmailId,
-                    ["threadId"]       = chunk.ThreadId,
-                    ["subject"]        = chunk.Subject,
-                    ["from"]           = chunk.From,
-                    ["to"]             = chunk.To,
-                    ["cc"]             = chunk.Cc,
-                    ["date"]           = chunk.Date.ToString("O"),
-                    ["labels"]         = chunk.Labels,
-                    ["hasAttachments"] = chunk.HasAttachments ? 1 : 0,
-                    ["direction"]      = chunk.Direction,
-                    ["chunkIndex"]     = chunk.ChunkIndex,
-                    ["totalChunks"]    = chunk.TotalChunks,
-                    ["text"]           = chunk.Text
+                    ["documentId"]  = chunk.DocumentId,
+                    ["sourceType"]  = chunk.SourceType,
+                    ["title"]       = chunk.Title,
+                    ["author"]      = chunk.Author,
+                    ["recipient"]   = chunk.Recipient ?? string.Empty,
+                    ["cc"]          = chunk.Cc ?? string.Empty,
+                    ["url"]         = chunk.Url ?? string.Empty,
+                    ["publishedAt"] = chunk.PublishedAt.ToString("O"),
+                    ["chunkIndex"]  = chunk.ChunkIndex,
+                    ["totalChunks"] = chunk.TotalChunks,
+                    ["text"]        = chunk.Text,
+                    ["metadata"]    = JsonSerializer.Serialize(chunk.Metadata)
                 }
             };
 
-            _logger.LogInformation("Upserting chunk for email '{EmailId}' [{Direction}]", chunk.EmailId, chunk.Direction);
+            _logger.LogInformation("Upserting [{SourceType}] '{Title}' chunk {ChunkIndex}",
+                chunk.SourceType, chunk.Title, chunk.ChunkIndex);
             await _client.UpsertAsync(CollectionName, [point], cancellationToken: ct);
         }
 
@@ -58,12 +59,8 @@ namespace RagAMuffin.Services
             return results.Select(r => MapPayload(r.Payload, r.Score)).ToList();
         }
 
-        public async Task<List<ScoredChunk>> ScrollBySenderAsync(string field, string name, int limit, CancellationToken ct = default)
+        public async Task<List<ScoredChunk>> SearchByFieldAsync(string field, string value, int limit, CancellationToken ct = default)
         {
-            // Uses the full-text payload index created at startup.
-            // Match { Text } tokenizes the name and does word-level matching on the field,
-            // so "Mike Maseda" finds "Mike Maseda <mike@example.com>" correctly.
-            // Dummy zero vector because we're filtering by payload, not by similarity.
             var results = await _client.SearchAsync(
                 CollectionName,
                 new float[768],
@@ -76,7 +73,7 @@ namespace RagAMuffin.Services
                             Field = new FieldCondition
                             {
                                 Key   = field,
-                                Match = new Match { Text = name }
+                                Match = new Match { Text = value }
                             }
                         }
                     }
@@ -88,7 +85,7 @@ namespace RagAMuffin.Services
             return results.Select(r => MapPayload(r.Payload, 1.0f)).ToList();
         }
 
-        public async Task<bool> EmailExistsAsync(string emailId, CancellationToken ct = default)
+        public async Task<bool> DocumentExistsAsync(string documentId, CancellationToken ct = default)
         {
             var results = await _client.SearchAsync(
                 CollectionName,
@@ -101,8 +98,8 @@ namespace RagAMuffin.Services
                         {
                             Field = new FieldCondition
                             {
-                                Key   = "emailId",
-                                Match = new Match { Text = emailId }
+                                Key   = "documentId",
+                                Match = new Match { Keyword = documentId }
                             }
                         }
                     }
@@ -114,7 +111,7 @@ namespace RagAMuffin.Services
             return results.Any();
         }
 
-        public async Task DeleteByEmailIdAsync(string emailId, CancellationToken ct = default)
+        public async Task DeleteByDocumentIdAsync(string documentId, CancellationToken ct = default)
         {
             await _client.DeleteAsync(CollectionName, new Filter
             {
@@ -124,29 +121,32 @@ namespace RagAMuffin.Services
                     {
                         Field = new FieldCondition
                         {
-                            Key   = "emailId",
-                            Match = new Match { Text = emailId }
+                            Key   = "documentId",
+                            Match = new Match { Keyword = documentId }
                         }
                     }
                 }
             }, cancellationToken: ct);
         }
 
-        private static ScoredChunk MapPayload(MapField<string, Value> payload, float score) =>
-            new ScoredChunk
+        private static ScoredChunk MapPayload(MapField<string, Value> payload, float score)
+        {
+            var metadataRaw = payload.TryGetValue("metadata", out var m) ? m.StringValue : "{}";
+            var metadata = JsonSerializer.Deserialize<Dictionary<string, string>>(metadataRaw) ?? new();
+
+            return new ScoredChunk
             {
-                EmailId        = payload["emailId"].StringValue,
-                ThreadId       = payload["threadId"].StringValue,
-                Subject        = payload["subject"].StringValue,
-                From           = payload["from"].StringValue,
-                To             = payload["to"].StringValue,
-                Cc             = payload["cc"].StringValue,
-                Date           = payload["date"].StringValue,
-                Labels         = payload["labels"].StringValue,
-                HasAttachments = payload["hasAttachments"].IntegerValue > 0,
-                Direction      = payload["direction"].StringValue,
-                Text           = payload["text"].StringValue,
-                Score          = score
+                DocumentId  = payload["documentId"].StringValue,
+                SourceType  = payload["sourceType"].StringValue,
+                Title       = payload["title"].StringValue,
+                Author      = payload["author"].StringValue,
+                Recipient   = payload.TryGetValue("recipient", out var r) ? r.StringValue : null,
+                Url         = payload.TryGetValue("url", out var u) && !string.IsNullOrEmpty(u.StringValue) ? u.StringValue : null,
+                PublishedAt = payload["publishedAt"].StringValue,
+                Text        = payload["text"].StringValue,
+                Metadata    = metadata,
+                Score       = score
             };
+        }
     }
 }

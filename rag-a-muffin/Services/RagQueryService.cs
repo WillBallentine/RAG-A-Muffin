@@ -37,7 +37,7 @@ namespace RagAMuffin.Services
             {
                 return new QueryResponse
                 {
-                    Answer = "I couldn't find any emails relevant to your question.",
+                    Answer = "I couldn't find any relevant documents for your question.",
                     Citations = []
                 };
             }
@@ -48,10 +48,10 @@ namespace RagAMuffin.Services
 
             var citations = chunks.Select(c => new ChunkCitation
             {
-                EmailId      = c.EmailId,
-                Subject      = c.Subject,
-                From         = c.From,
-                Date         = c.Date,
+                EmailId      = c.DocumentId,
+                Subject      = c.Title,
+                From         = c.Author,
+                Date         = c.PublishedAt,
                 RelevantText = c.Text
             }).ToList();
 
@@ -67,11 +67,12 @@ namespace RagAMuffin.Services
             var chunks = await ResolveChunksAsync(request, queryVector, ct);
 
             foreach (var c in chunks)
-                _logger.LogInformation("Using: [{Dir}] Subject='{Subject}' Score={Score:F3}", c.Direction, c.Subject, c.Score);
+                _logger.LogInformation("Using: [{SourceType}] '{Title}' Score={Score:F3}",
+                    c.SourceType, c.Title, c.Score);
 
             if (chunks.Count == 0)
             {
-                yield return "I couldn't find any emails relevant to your question.";
+                yield return "I couldn't find any relevant documents for your question.";
                 yield break;
             }
 
@@ -84,19 +85,19 @@ namespace RagAMuffin.Services
 
             var citationsJson = JsonSerializer.Serialize(chunks.Select(c => new
             {
-                emailId        = c.EmailId,
-                subject        = c.Subject,
-                from           = c.From,
-                to             = c.To,
-                date           = c.Date,
-                direction      = c.Direction,
-                hasAttachments = c.HasAttachments
+                documentId     = c.DocumentId,
+                sourceType     = c.SourceType,
+                title          = c.Title,
+                author         = c.Author,
+                recipient      = c.Recipient,
+                date           = c.PublishedAt,
+                direction      = c.Metadata.GetValueOrDefault("direction"),
+                hasAttachments = c.Metadata.GetValueOrDefault("hasAttachments") == "true"
             }).ToList());
 
             yield return $"[CITATIONS]:{citationsJson}";
         }
 
-        // Runs vector search, then merges in any direct sender/recipient payload matches.
         private async Task<List<ScoredChunk>> ResolveChunksAsync(QueryRequest request, float[] queryVector, CancellationToken ct)
         {
             var vectorResults = await _vectorStore.SearchAsync(queryVector, request.TopK, ct);
@@ -106,17 +107,17 @@ namespace RagAMuffin.Services
 
             if (senderName != null)
             {
-                _logger.LogInformation("Sender filter detected: '{Name}' — running payload search on 'from'", senderName);
-                var senderResults = await _vectorStore.ScrollBySenderAsync("from", senderName, request.TopK, ct);
-                _logger.LogInformation("Payload search found {Count} sender matches", senderResults.Count);
+                _logger.LogInformation("Sender filter detected: '{Name}' — searching 'author' field", senderName);
+                var senderResults = await _vectorStore.SearchByFieldAsync("author", senderName, request.TopK, ct);
+                _logger.LogInformation("Field search found {Count} author matches", senderResults.Count);
                 vectorResults = Merge(senderResults, vectorResults, request.TopK);
             }
 
             if (recipientName != null)
             {
-                _logger.LogInformation("Recipient filter detected: '{Name}' — running payload search on 'to'", recipientName);
-                var recipientResults = await _vectorStore.ScrollBySenderAsync("to", recipientName, request.TopK, ct);
-                _logger.LogInformation("Payload search found {Count} recipient matches", recipientResults.Count);
+                _logger.LogInformation("Recipient filter detected: '{Name}' — searching 'recipient' field", recipientName);
+                var recipientResults = await _vectorStore.SearchByFieldAsync("recipient", recipientName, request.TopK, ct);
+                _logger.LogInformation("Field search found {Count} recipient matches", recipientResults.Count);
                 vectorResults = Merge(recipientResults, vectorResults, request.TopK);
             }
 
@@ -126,22 +127,19 @@ namespace RagAMuffin.Services
         // Payload-matched results go first (direct answer), then vector results fill remaining slots.
         private static List<ScoredChunk> Merge(List<ScoredChunk> primary, List<ScoredChunk> secondary, int limit)
         {
-            var seenEmailIds = new HashSet<string>(primary.Select(c => c.EmailId));
+            var seenIds = primary.Select(c => c.DocumentId).ToHashSet();
             return primary
-                .Concat(secondary.Where(c => !seenEmailIds.Contains(c.EmailId)))
+                .Concat(secondary.Where(c => !seenIds.Contains(c.DocumentId)))
                 .Take(limit)
                 .ToList();
         }
 
-        // Detects "from X" and "to X" patterns in the query and returns the extracted name.
         private static (string? senderName, string? recipientName) ExtractPersonFilters(string query)
         {
-            // Matches: "from Mike Maseda", "emails from Verizon", "received from Sarah Jones"
             var fromMatch = Regex.Match(query,
                 @"\bfrom\s+([A-Za-z][A-Za-z0-9\s\.]{1,40}?)(?:\s*\?|$|\s+(?:about|regarding|on|with|at|that|in))",
                 RegexOptions.IgnoreCase);
 
-            // Matches: "to John", "sent to Mike", "emails to Sarah Jones"
             var toMatch = Regex.Match(query,
                 @"\bto\s+([A-Za-z][A-Za-z0-9\s\.]{1,40}?)(?:\s*\?|$|\s+(?:about|regarding|on|with|at|that|in))",
                 RegexOptions.IgnoreCase);
@@ -159,30 +157,36 @@ namespace RagAMuffin.Services
             var context = string.Join("\n\n", chunks.Select((c, i) =>
             {
                 var text = c.Text.Length > 800 ? c.Text[..800] + "…" : c.Text;
-                var direction = c.Direction == "sent" ? "Sent by you" : "Received";
                 var sb = new StringBuilder();
-                sb.AppendLine($"[Email {i + 1}] {direction}");
-                sb.AppendLine($"From: {c.From}");
-                if (!string.IsNullOrWhiteSpace(c.To))
-                    sb.AppendLine($"To: {c.To}");
-                if (!string.IsNullOrWhiteSpace(c.Cc))
-                    sb.AppendLine($"Cc: {c.Cc}");
-                sb.AppendLine($"Subject: {c.Subject}");
-                sb.AppendLine($"Date: {c.Date}");
-                if (c.HasAttachments)
+
+                // Source header varies by type
+                var direction = c.Metadata.GetValueOrDefault("direction");
+                var sourceLabel = c.SourceType == "gmail"
+                    ? (direction == "sent" ? "Sent by you" : "Received")
+                    : c.SourceType;
+
+                sb.AppendLine($"[Document {i + 1}] {sourceLabel}");
+                sb.AppendLine($"From: {c.Author}");
+                if (!string.IsNullOrWhiteSpace(c.Recipient))
+                    sb.AppendLine($"To: {c.Recipient}");
+                if (!string.IsNullOrWhiteSpace(c.Url))
+                    sb.AppendLine($"URL: {c.Url}");
+                sb.AppendLine($"Title: {c.Title}");
+                sb.AppendLine($"Date: {c.PublishedAt}");
+                if (c.Metadata.GetValueOrDefault("hasAttachments") == "true")
                     sb.AppendLine("Has attachments: yes");
                 sb.AppendLine($"Content: {text}");
                 return sb.ToString().TrimEnd();
             }));
 
             return $"""
-        You are a personal email assistant. Today is {today}.
-        Answer the user's question using only the emails provided below.
+        You are a personal assistant. Today is {today}.
+        Answer the user's question using only the documents provided below.
         Be direct and specific — if the answer is yes/no, lead with that.
-        When dates or senders matter, mention them in your answer.
-        If the emails don't contain enough information to answer, say so clearly — don't guess.
+        When dates or authors matter, mention them in your answer.
+        If the documents don't contain enough information to answer, say so clearly — don't guess.
 
-        EMAILS:
+        DOCUMENTS:
         {context}
 
         QUESTION: {question}
