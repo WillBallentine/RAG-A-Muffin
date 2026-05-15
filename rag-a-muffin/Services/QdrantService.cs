@@ -47,11 +47,29 @@ namespace RagAMuffin.Services
             await _client.UpsertAsync(CollectionName, [point], cancellationToken: ct);
         }
 
-        public async Task<List<ScoredChunk>> SearchAsync(float[] queryVector, int topK = 5, CancellationToken ct = default)
+        public async Task<List<ScoredChunk>> SearchAsync(float[] queryVector, int topK = 5, IEnumerable<string>? sourceTypes = null, CancellationToken ct = default)
         {
+            var types = sourceTypes?.ToList();
+            Filter? filter = null;
+
+            if (types is { Count: > 0 })
+            {
+                filter = new Filter();
+                foreach (var st in types)
+                    filter.Should.Add(new Condition
+                    {
+                        Field = new FieldCondition
+                        {
+                            Key   = "sourceType",
+                            Match = new Match { Keyword = st }
+                        }
+                    });
+            }
+
             var results = await _client.SearchAsync(
                 CollectionName,
                 queryVector,
+                filter: filter,
                 limit: (ulong)topK,
                 cancellationToken: ct
             );

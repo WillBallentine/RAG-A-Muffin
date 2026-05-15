@@ -112,6 +112,33 @@
     letter-spacing: 0.04em;
   }
 
+  /* ── Upload button ── */
+  .btn-upload {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    white-space: nowrap;
+  }
+
+  .btn-upload:hover {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .btn-upload:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+
   /* ── Sync button ── */
   .btn-sync {
     display: flex;
@@ -383,6 +410,47 @@
     padding: 0 4px;
   }
 
+  /* ── Source filter chips ── */
+  .filter-bar {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .filter-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s;
+    user-select: none;
+  }
+
+  .chip:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .chip.active {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+
   /* ── Toast ── */
   .toast {
     position: fixed;
@@ -417,6 +485,103 @@
 
   /* ── Scrollbar for chat on Firefox ── */
   .chat { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
+  /* ── Citation card clickable ── */
+  .citation {
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+
+  .citation:hover {
+    border-left-color: var(--accent);
+    background: var(--surface);
+  }
+
+  /* ── Preview modal ── */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 300;
+    animation: fadeIn .15s ease;
+    padding: 0;
+  }
+
+  .modal-backdrop.hidden { display: none; }
+
+  .modal {
+    width: 100%;
+    max-width: 860px;
+    max-height: 70dvh;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp .2s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 20px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .modal-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .modal-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: color .15s;
+  }
+
+  .modal-close:hover { color: var(--text); }
+
+  .modal-body {
+    overflow-y: auto;
+    padding: 18px 20px 24px;
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: var(--text-muted);
+    white-space: pre-wrap;
+    word-break: break-word;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .modal-body::-webkit-scrollbar { width: 4px; }
+  .modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
   /* ── Login screen ── */
   .login-screen {
@@ -729,6 +894,13 @@
         <span id="userPillEmail"></span>
         <button class="btn-signout" onclick="signOut()" title="Sign out">✕</button>
       </div>
+      <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt,.md" style="display:none" onchange="uploadFile(this)" multiple />
+      <button class="btn-upload" id="uploadBtn" onclick="document.getElementById('fileInput').click()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+        </svg>
+        Upload Doc
+      </button>
       <button class="btn-sync" id="syncBtn" onclick="syncInbox()">
         <svg id="syncIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -746,16 +918,22 @@
     <div class="empty" id="empty">
       <div class="empty-icon">🧁</div>
       <h2>RAG-A-Muffin</h2>
-      <p>Ask anything about your emails. Sync your inbox first to get started.</p>
+      <p>Ask about your life. Upload docs or sync Gmail to get started.</p>
     </div>
   </div>
 
   <!-- Input -->
   <div class="input-area">
+    <div class="filter-bar">
+      <span class="filter-label">source</span>
+      <span class="chip active" data-filter="all" onclick="setFilter('all')">All</span>
+      <span class="chip" data-filter="gmail" onclick="setFilter('gmail')">Email</span>
+      <span class="chip" data-filter="docs" onclick="setFilter('docs')">Docs</span>
+    </div>
     <div class="input-row">
       <textarea
         id="input"
-        placeholder="Ask about your emails..."
+        placeholder="Ask about your docs, emails, anything..."
         rows="1"
         onkeydown="handleKey(event)"
         oninput="autoResize(this)"
@@ -774,6 +952,20 @@
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- Preview modal -->
+<div class="modal-backdrop hidden" id="previewModal" onclick="closePreview(event)">
+  <div class="modal" id="previewPanel">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="previewTitle"></div>
+        <div class="modal-meta" id="previewMeta"></div>
+      </div>
+      <button class="modal-close" onclick="closePreviewBtn()">✕</button>
+    </div>
+    <div class="modal-body" id="previewBody"></div>
+  </div>
+</div>
+
 <script>
   // ── Config ───────────────────────────────────────────────
   const API_BASE = window.location.origin;
@@ -781,6 +973,21 @@
   // ── State ────────────────────────────────────────────────
   let isStreaming = false;
   let currentUserId = localStorage.getItem('ram_userId') || null;
+  let activeFilter = 'all'; // 'all' | 'gmail' | 'docs'
+
+  const DOC_SOURCE_TYPES = ['pdf', 'docx', 'doc', 'txt', 'md'];
+
+  function setFilter(filter) {
+    activeFilter = filter;
+    document.querySelectorAll('.chip').forEach(c =>
+      c.classList.toggle('active', c.dataset.filter === filter));
+  }
+
+  function buildSourceTypes() {
+    if (activeFilter === 'gmail') return ['gmail'];
+    if (activeFilter === 'docs') return DOC_SOURCE_TYPES;
+    return null; // all sources
+  }
 
   // ── Boot ─────────────────────────────────────────────────
   function boot() {
@@ -883,7 +1090,7 @@
       <div class="empty" id="empty">
         <div class="empty-icon">🧁</div>
         <h2>RAG-A-Muffin</h2>
-        <p>Ask anything about your emails. Sync your inbox first to get started.</p>
+        <p>Ask about your life. Upload docs or sync Gmail to get started.</p>
       </div>`;
     resetAuth();
     showLoginScreen();
@@ -919,6 +1126,42 @@
     }
   }
 
+  // ── Upload Document ──────────────────────────────────────
+  async function uploadFile(input) {
+    const files = Array.from(input.files);
+    if (files.length === 0) return;
+
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true;
+    btn.textContent = 'Uploading...';
+
+    let succeeded = 0;
+    let failed = 0;
+
+    for (const file of files) {
+      try {
+        const form = new FormData();
+        form.append('file', file);
+        const res = await fetch(`${API_BASE}/ingest/upload`, { method: 'POST', body: form });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || `HTTP ${res.status}`);
+        }
+        succeeded++;
+      } catch (err) {
+        failed++;
+        showToast(`Failed to upload ${file.name}: ${err.message}`, true);
+      }
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg> Upload Doc`;
+    input.value = '';
+
+    if (succeeded > 0)
+      showToast(`✓ ${succeeded} document${succeeded > 1 ? 's' : ''} ingested`);
+  }
+
   // ── Send Query ───────────────────────────────────────────
   async function sendQuery() {
     const input = document.getElementById('input');
@@ -940,7 +1183,7 @@
       const res = await fetch(`${API_BASE}/query/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, topK: 8 })
+        body: JSON.stringify({ query, topK: 8, sourceTypes: buildSourceTypes() })
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1057,6 +1300,14 @@
     if (!citations || citations.length === 0) return;
     const msg = bubbleEl.parentElement;
 
+    // Deduplicate by documentId (backend already does this; belt-and-suspenders)
+    const seen = new Set();
+    const unique = citations.filter(c => {
+      if (seen.has(c.documentId)) return false;
+      seen.add(c.documentId);
+      return true;
+    });
+
     const wrapper = document.createElement('div');
     wrapper.className = 'citations';
 
@@ -1065,14 +1316,15 @@
     label.textContent = 'sources';
     wrapper.appendChild(label);
 
-    for (const c of citations) {
+    for (const c of unique) {
       const card = document.createElement('div');
       card.className = 'citation';
       const isSent = c.direction === 'sent';
-      const dirArrow = isSent ? '↑' : '↓';
-      const counterparty = isSent
-        ? `To: ${escapeHtml(c.recipient || '(unknown)')}`
-        : escapeHtml(c.author || '(unknown)');
+      const isLocal = c.sourceType !== 'gmail';
+      const dirArrow = isLocal ? '↗' : (isSent ? '↑' : '↓');
+      const counterparty = isLocal
+        ? escapeHtml(c.sourceType?.toUpperCase() || 'DOC')
+        : (isSent ? `To: ${escapeHtml(c.recipient || '(unknown)')}` : escapeHtml(c.author || '(unknown)'));
       const attachLine = c.hasAttachments
         ? `<div class="citation-from" style="color:var(--text-muted)">📎 has attachment</div>`
         : '';
@@ -1081,11 +1333,40 @@
         `<div class="citation-date">${formatDate(c.date)}</div>` +
         `<div class="citation-from">${dirArrow} ${counterparty}</div>` +
         attachLine;
+
+      if (c.preview) {
+        card.title = 'Click to preview';
+        card.addEventListener('click', () => openPreview(c));
+      }
+
       wrapper.appendChild(card);
     }
 
     msg.appendChild(wrapper);
     scrollToBottom();
+  }
+
+  // ── Preview modal ─────────────────────────────────────────
+  function openPreview(c) {
+    const isLocal = c.sourceType !== 'gmail';
+    const meta = isLocal
+      ? `${c.sourceType?.toUpperCase()} · ${formatDate(c.date)}`
+      : `${c.direction === 'sent' ? '↑ To: ' + (c.recipient || '?') : '↓ From: ' + (c.author || '?')} · ${formatDate(c.date)}`;
+
+    document.getElementById('previewTitle').textContent = c.title;
+    document.getElementById('previewMeta').textContent  = meta;
+    document.getElementById('previewBody').textContent  = c.preview || '(no preview available)';
+    document.getElementById('previewModal').classList.remove('hidden');
+  }
+
+  function closePreview(event) {
+    // Only close if clicking the backdrop itself, not the panel
+    if (event.target === document.getElementById('previewModal'))
+      document.getElementById('previewModal').classList.add('hidden');
+  }
+
+  function closePreviewBtn() {
+    document.getElementById('previewModal').classList.add('hidden');
   }
 
   function escapeHtml(str) {
@@ -1123,6 +1404,9 @@
   }
 
   // ── Init ─────────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closePreviewBtn();
+  });
   boot();
 </script>
 </body>

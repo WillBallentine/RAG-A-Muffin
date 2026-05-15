@@ -185,3 +185,11 @@ C:\src\rag-a-muffin\rag-a-muffin\obj\Debug\net8.0\refint\rag-a-muffin.dll
 C:\src\rag-a-muffin\rag-a-muffin\obj\Debug\net8.0\rag-a-muffin.pdb
 C:\src\rag-a-muffin\rag-a-muffin\obj\Debug\net8.0\rag-a-muffin.genruntimeconfig.cache
 C:\src\rag-a-muffin\rag-a-muffin\obj\Debug\net8.0\ref\rag-a-muffin.dll
+C:\src\rag-a-muffin\rag-a-muffin\bin\Debug\net8.0\DocumentFormat.OpenXml.dll
+C:\src\rag-a-muffin\rag-a-muffin\bin\Debug\net8.0\DocumentFormat.OpenXml.Framework.dll
+C:\src\rag-a-muffin\rag-a-muffin\bin\Debug\net8.0\System.IO.Packaging.dll
+C:\src\rag-a-muffin\rag-a-muffin\bin\Debug\net8.0\UglyToad.PdfPig.dll
+C:\src\rag-a-muffin\rag-a-muffin\bin\Debug\net8.0\UglyToad.PdfPig.Core.dll
+C:\src\rag-a-muffin\rag-a-muffin\bin\Debug\net8.0\UglyToad.PdfPig.Fonts.dll
+C:\src\rag-a-muffin\rag-a-muffin\bin\Debug\net8.0\UglyToad.PdfPig.Tokenization.dll
+C:\src\rag-a-muffin\rag-a-muffin\bin\Debug\net8.0\UglyToad.PdfPig.Tokens.dll

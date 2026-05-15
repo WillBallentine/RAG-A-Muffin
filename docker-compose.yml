@@ -36,7 +36,9 @@ services:
       - ASPNETCORE_URLS=http://+:8000
     volumes:
       - ./credentials.json:/app/credentials.json  # mount, never bake into image
-      - ./data/tokens:/app/data/tokens  
+      - ./data/tokens:/app/data/tokens
+      - ./data/uploads:/app/data/uploads
+      - ./data/watch:/app/data/watch
 
 volumes:
   qdrant_data:

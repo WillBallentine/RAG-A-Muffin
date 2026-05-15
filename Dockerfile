@@ -20,6 +20,6 @@ COPY --from=publish /app/publish .
 ENV ASPNETCORE_URLS=http://+:8000
 EXPOSE 8000
 
-RUN mkdir -p /app/data/tokens
+RUN mkdir -p /app/data/tokens /app/data/uploads /app/data/watch
 
 ENTRYPOINT ["dotnet", "rag-a-muffin.dll"]

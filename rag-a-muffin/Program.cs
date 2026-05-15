@@ -4,6 +4,7 @@ using RagAMuffin.Services.ExternalApps;
 using RagAMuffin.Services.Interfaces;
 using RagAMuffin.Services;
 using RagAMuffin.Services.Connectors;
+using RagAMuffin.Services.Extractors;
 using RagAMuffin.Qdrant;
 using Qdrant.Client;
 
@@ -39,7 +40,14 @@ builder.Services.AddScoped<IIngestionPipeline, IngestionPipeline>();
 // Connectors — add more here as new source types are implemented
 builder.Services.AddScoped<IConnector, GmailConnector>();
 
+// Document extractors — each handles a specific file extension
+builder.Services.AddScoped<IDocumentExtractor, PdfExtractor>();
+builder.Services.AddScoped<IDocumentExtractor, DocxExtractor>();
+builder.Services.AddScoped<IDocumentExtractor, PlainTextExtractor>();
+builder.Services.AddScoped<FileIngestionService>();
+
 builder.Services.AddHostedService<ConnectorSyncService>();
+builder.Services.AddHostedService<FileWatcherService>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -58,6 +66,8 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Starting Rag-A-Muffin application...");
 
 Directory.CreateDirectory("/app/data/tokens");
+Directory.CreateDirectory("/app/data/uploads");
+Directory.CreateDirectory("/app/data/watch");
 
 var initializer = app.Services.GetRequiredService<QdrantCollectionInitializer>();
 await initializer.InitializeAsync();
@@ -148,6 +158,25 @@ app.MapGet("/inbox", async (HttpRequest request, IIngestionPipeline pipeline, IE
         preview = d.Body.Length > 100 ? d.Body[..100] + "..." : d.Body
     }));
 });
+
+app.MapPost("/ingest/upload", async (HttpRequest request, FileIngestionService ingestor, CancellationToken ct) =>
+{
+    if (!request.HasFormContentType)
+        return Results.BadRequest(new { Message = "Expected multipart/form-data." });
+
+    var form = await request.ReadFormAsync(ct);
+    var file = form.Files.GetFile("file");
+    if (file is null)
+        return Results.BadRequest(new { Message = "No file field found in form data." });
+
+    await using var stream = file.OpenReadStream();
+    var id = await ingestor.IngestAsync(stream, file.FileName, ct);
+
+    if (id is null)
+        return Results.UnprocessableEntity(new { Message = "File could not be ingested. Unsupported format or empty content." });
+
+    return Results.Ok(new { documentId = id, title = Path.GetFileNameWithoutExtension(file.FileName) });
+}).DisableAntiforgery();
 
 app.MapPost("/query", async (QueryRequest request, IRagQueryService queryService, CancellationToken ct) =>
 {

@@ -83,24 +83,32 @@ namespace RagAMuffin.Services
                 yield return token;
             }
 
-            var citationsJson = JsonSerializer.Serialize(chunks.Select(c => new
-            {
-                documentId     = c.DocumentId,
-                sourceType     = c.SourceType,
-                title          = c.Title,
-                author         = c.Author,
-                recipient      = c.Recipient,
-                date           = c.PublishedAt,
-                direction      = c.Metadata.GetValueOrDefault("direction"),
-                hasAttachments = c.Metadata.GetValueOrDefault("hasAttachments") == "true"
-            }).ToList());
+            // One card per document — keep the highest-scoring chunk (chunks are already score-ordered)
+            var seen = new HashSet<string>();
+            var dedupedCitations = chunks
+                .Where(c => seen.Add(c.DocumentId))
+                .Select(c => new
+                {
+                    documentId     = c.DocumentId,
+                    sourceType     = c.SourceType,
+                    title          = c.Title,
+                    author         = c.Author,
+                    recipient      = c.Recipient,
+                    date           = c.PublishedAt,
+                    direction      = c.Metadata.GetValueOrDefault("direction"),
+                    hasAttachments = c.Metadata.GetValueOrDefault("hasAttachments") == "true",
+                    preview        = c.Text
+                })
+                .ToList();
+
+            var citationsJson = JsonSerializer.Serialize(dedupedCitations);
 
             yield return $"[CITATIONS]:{citationsJson}";
         }
 
         private async Task<List<ScoredChunk>> ResolveChunksAsync(QueryRequest request, float[] queryVector, CancellationToken ct)
         {
-            var vectorResults = await _vectorStore.SearchAsync(queryVector, request.TopK, ct);
+            var vectorResults = await _vectorStore.SearchAsync(queryVector, request.TopK, request.SourceTypes, ct);
             _logger.LogInformation("Vector search returned {Count} chunks", vectorResults.Count);
 
             var (senderName, recipientName) = ExtractPersonFilters(request.Query);

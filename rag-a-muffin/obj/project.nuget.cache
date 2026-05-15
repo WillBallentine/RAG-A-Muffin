@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "jA5ahJ+X8to=",
+  "dgSpecHash": "ZSCUJaG2lCs=",
   "success": true,
   "projectFilePath": "C:\\src\\rag-a-muffin\\rag-a-muffin\\rag-a-muffin.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\jmontygman\\.nuget\\packages\\documentformat.openxml\\3.5.1\\documentformat.openxml.3.5.1.nupkg.sha512",
+    "C:\\Users\\jmontygman\\.nuget\\packages\\documentformat.openxml.framework\\3.5.1\\documentformat.openxml.framework.3.5.1.nupkg.sha512",
     "C:\\Users\\jmontygman\\.nuget\\packages\\google.apis\\1.74.0\\google.apis.1.74.0.nupkg.sha512",
     "C:\\Users\\jmontygman\\.nuget\\packages\\google.apis.auth\\1.74.0\\google.apis.auth.1.74.0.nupkg.sha512",
     "C:\\Users\\jmontygman\\.nuget\\packages\\google.apis.core\\1.74.0\\google.apis.core.1.74.0.nupkg.sha512",
@@ -29,12 +31,18 @@
     "C:\\Users\\jmontygman\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\6.6.2\\swashbuckle.aspnetcore.swaggerui.6.6.2.nupkg.sha512",
     "C:\\Users\\jmontygman\\.nuget\\packages\\system.codedom\\7.0.0\\system.codedom.7.0.0.nupkg.sha512",
     "C:\\Users\\jmontygman\\.nuget\\packages\\system.diagnostics.diagnosticsource\\10.0.6\\system.diagnostics.diagnosticsource.10.0.6.nupkg.sha512",
+    "C:\\Users\\jmontygman\\.nuget\\packages\\system.io.packaging\\8.0.1\\system.io.packaging.8.0.1.nupkg.sha512",
     "C:\\Users\\jmontygman\\.nuget\\packages\\system.io.pipelines\\10.0.6\\system.io.pipelines.10.0.6.nupkg.sha512",
     "C:\\Users\\jmontygman\\.nuget\\packages\\system.management\\7.0.2\\system.management.7.0.2.nupkg.sha512",
     "C:\\Users\\jmontygman\\.nuget\\packages\\system.numerics.tensors\\10.0.6\\system.numerics.tensors.10.0.6.nupkg.sha512",
     "C:\\Users\\jmontygman\\.nuget\\packages\\system.text.encodings.web\\10.0.6\\system.text.encodings.web.10.0.6.nupkg.sha512",
     "C:\\Users\\jmontygman\\.nuget\\packages\\system.text.json\\10.0.6\\system.text.json.10.0.6.nupkg.sha512",
-    "C:\\Users\\jmontygman\\.nuget\\packages\\system.threading.channels\\10.0.6\\system.threading.channels.10.0.6.nupkg.sha512"
+    "C:\\Users\\jmontygman\\.nuget\\packages\\system.threading.channels\\10.0.6\\system.threading.channels.10.0.6.nupkg.sha512",
+    "C:\\Users\\jmontygman\\.nuget\\packages\\uglytoad.pdfpig\\1.7.0-custom-5\\uglytoad.pdfpig.1.7.0-custom-5.nupkg.sha512",
+    "C:\\Users\\jmontygman\\.nuget\\packages\\uglytoad.pdfpig.core\\1.7.0-custom-5\\uglytoad.pdfpig.core.1.7.0-custom-5.nupkg.sha512",
+    "C:\\Users\\jmontygman\\.nuget\\packages\\uglytoad.pdfpig.fonts\\1.7.0-custom-5\\uglytoad.pdfpig.fonts.1.7.0-custom-5.nupkg.sha512",
+    "C:\\Users\\jmontygman\\.nuget\\packages\\uglytoad.pdfpig.tokenization\\1.7.0-custom-5\\uglytoad.pdfpig.tokenization.1.7.0-custom-5.nupkg.sha512",
+    "C:\\Users\\jmontygman\\.nuget\\packages\\uglytoad.pdfpig.tokens\\1.7.0-custom-5\\uglytoad.pdfpig.tokens.1.7.0-custom-5.nupkg.sha512"
   ],
   "logs": []
 }
