@@ -3,6 +3,8 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Gmail.v1;
+using Google.Apis.Drive.v3;
+using Google.Apis.Calendar.v3;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 
@@ -14,18 +16,21 @@ namespace RagAMuffin.Auth
 
         private static async Task<GoogleAuthorizationCodeFlow> CreateFlowAsync()
         {
-            // credentials.json also needs a reliable path
             var credentialsPath = Path.Combine(AppContext.BaseDirectory, "credentials.json");
             await using var stream = new FileStream(credentialsPath, FileMode.Open, FileAccess.Read);
             var secrets = GoogleClientSecrets.FromStream(stream).Secrets;
 
-            // Ensure the directory exists
             Directory.CreateDirectory(TokenStoreFolder);
 
             return new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
             {
                 ClientSecrets = secrets,
-                Scopes = new[] { GmailService.Scope.GmailReadonly },
+                Scopes = new[]
+                {
+                    GmailService.Scope.GmailReadonly,
+                    DriveService.Scope.DriveReadonly,
+                    CalendarService.Scope.CalendarReadonly
+                },
                 DataStore = new FileDataStore(TokenStoreFolder, fullPath: true)
             });
         }
@@ -55,19 +60,41 @@ namespace RagAMuffin.Auth
 
         public static async Task<GmailService> CreateGmailServiceAsync(string userId)
         {
-            var flow = await CreateFlowAsync();
-            var token = await flow.LoadTokenAsync(userId, CancellationToken.None);
-            if (token is null)
-            {
-                throw new InvalidOperationException($"No stored token found for user '{userId}'.");
-            }
-
-            var credential = new UserCredential(flow, userId, token);
+            var credential = await GetCredentialAsync(userId);
             return new GmailService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = credential,
                 ApplicationName = "RAG-A-Muffin"
             });
+        }
+
+        public static async Task<DriveService> CreateDriveServiceAsync(string userId)
+        {
+            var credential = await GetCredentialAsync(userId);
+            return new DriveService(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "RAG-A-Muffin"
+            });
+        }
+
+        public static async Task<CalendarService> CreateCalendarServiceAsync(string userId)
+        {
+            var credential = await GetCredentialAsync(userId);
+            return new CalendarService(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "RAG-A-Muffin"
+            });
+        }
+
+        private static async Task<UserCredential> GetCredentialAsync(string userId)
+        {
+            var flow = await CreateFlowAsync();
+            var token = await flow.LoadTokenAsync(userId, CancellationToken.None);
+            if (token is null)
+                throw new InvalidOperationException($"No stored token for user '{userId}'.");
+            return new UserCredential(flow, userId, token);
         }
     }
 }

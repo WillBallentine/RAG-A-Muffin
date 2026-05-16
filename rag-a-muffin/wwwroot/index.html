@@ -583,6 +583,117 @@
   .modal-body::-webkit-scrollbar { width: 4px; }
   .modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
+  /* ── Log viewer panel ── */
+  .log-panel {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 400;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn .15s ease;
+  }
+
+  .log-panel.hidden { display: none; }
+
+  .log-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .log-panel-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .log-live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .log-panel-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: color .15s, border-color .15s;
+  }
+
+  .log-panel-close:hover { color: var(--text); border-color: var(--text-muted); }
+
+  .log-entries {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 0;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .log-entry {
+    display: grid;
+    grid-template-columns: 80px 70px 160px 1fr;
+    gap: 0 10px;
+    padding: 3px 20px;
+    line-height: 1.5;
+    border-bottom: 1px solid transparent;
+  }
+
+  .log-entry:hover { background: var(--surface); }
+
+  .log-time  { color: var(--text-muted); white-space: nowrap; }
+  .log-level { font-weight: 500; }
+  .log-cat   { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .log-msg   { color: var(--text); word-break: break-word; }
+
+  .log-level.Information { color: var(--accent); }
+  .log-level.Warning     { color: #facc15; }
+  .log-level.Error,
+  .log-level.Critical    { color: var(--err); }
+
+  .log-empty {
+    padding: 40px 20px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ── Log button ── */
+  .btn-logs {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+
+  .btn-logs:hover { border-color: var(--accent); color: var(--text); }
+
   /* ── Login screen ── */
   .login-screen {
     position: fixed;
@@ -820,6 +931,249 @@
   }
 
   .btn-signout:hover { color: var(--err); }
+
+  /* ── Sources (connector config) button ── */
+  .btn-sources {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+
+  .btn-sources:hover { border-color: var(--accent); color: var(--text); }
+
+  /* ── Settings (connector config) panel ── */
+  .settings-panel {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 400;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn .15s ease;
+  }
+
+  .settings-panel.hidden { display: none; }
+
+  .settings-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .settings-panel-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .settings-panel-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: color .15s, border-color .15s;
+  }
+
+  .settings-panel-close:hover { color: var(--text); border-color: var(--text-muted); }
+
+  .settings-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    max-width: 700px;
+    width: 100%;
+    margin: 0 auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .settings-section-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .settings-section-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: -4px;
+  }
+
+  .feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 36px;
+  }
+
+  .feed-entry {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    animation: fadeUp .15s ease;
+  }
+
+  .feed-entry-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .feed-url {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .feed-entry-label {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .feed-delete {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color .15s, background .15s;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .feed-delete:hover { color: var(--err); background: rgba(248,113,113,.1); }
+
+  .feed-empty {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+  }
+
+  .add-entry-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .add-entry-input {
+    flex: 2;
+    min-width: 180px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .add-entry-input:focus { border-color: var(--accent); }
+  .add-entry-input::placeholder { color: var(--text-muted); }
+
+  .add-entry-label-input {
+    flex: 1;
+    min-width: 100px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .add-entry-label-input:focus { border-color: var(--accent); }
+  .add-entry-label-input::placeholder { color: var(--text-muted); }
+
+  .btn-add-entry {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .btn-add-entry:hover { border-color: var(--accent); background: var(--accent-dim); }
+
+  .settings-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+
+  .btn-save-config {
+    background: var(--accent);
+    border: none;
+    color: #0d0f0e;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+
+  .btn-save-config:hover    { opacity: .85; }
+  .btn-save-config:disabled { opacity: .4; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -894,6 +1248,20 @@
         <span id="userPillEmail"></span>
         <button class="btn-signout" onclick="signOut()" title="Sign out">✕</button>
       </div>
+      <button class="btn-sources" onclick="openSettings()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Sources
+      </button>
+      <button class="btn-logs" onclick="openLogs()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+        </svg>
+        Logs
+      </button>
       <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt,.md" style="display:none" onchange="uploadFile(this)" multiple />
       <button class="btn-upload" id="uploadBtn" onclick="document.getElementById('fileInput').click()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -929,6 +1297,10 @@
       <span class="chip active" data-filter="all" onclick="setFilter('all')">All</span>
       <span class="chip" data-filter="gmail" onclick="setFilter('gmail')">Email</span>
       <span class="chip" data-filter="docs" onclick="setFilter('docs')">Docs</span>
+      <span class="chip" data-filter="drive" onclick="setFilter('drive')">Drive</span>
+      <span class="chip" data-filter="calendar" onclick="setFilter('calendar')">Calendar</span>
+      <span class="chip" data-filter="rss" onclick="setFilter('rss')">RSS</span>
+      <span class="chip" data-filter="web" onclick="setFilter('web')">Web</span>
     </div>
     <div class="input-row">
       <textarea
@@ -966,6 +1338,68 @@
   </div>
 </div>
 
+<!-- Sources / connector config panel -->
+<div class="settings-panel hidden" id="settingsPanel">
+  <div class="settings-panel-header">
+    <div class="settings-panel-title">Sources</div>
+    <button class="settings-panel-close" onclick="closeSettings()">← back</button>
+  </div>
+
+  <div class="settings-body">
+
+    <!-- RSS / Atom Feeds -->
+    <div class="settings-section">
+      <div class="settings-section-title">RSS / Atom Feeds</div>
+      <div class="settings-section-desc">Feeds are fetched and indexed on each sync cycle. Existing articles won't be re-indexed.</div>
+      <div class="feed-list" id="rssFeedList"></div>
+      <div class="add-entry-row">
+        <input class="add-entry-input" id="rssUrlInput" type="url"
+               placeholder="https://example.com/feed.xml"
+               onkeydown="if(event.key==='Enter') addEntry('rss')" />
+        <input class="add-entry-label-input" id="rssLabelInput" type="text"
+               placeholder="Label (optional)"
+               onkeydown="if(event.key==='Enter') addEntry('rss')" />
+        <button class="btn-add-entry" onclick="addEntry('rss')">+ Add</button>
+      </div>
+    </div>
+
+    <!-- Web URLs -->
+    <div class="settings-section">
+      <div class="settings-section-title">Web URLs</div>
+      <div class="settings-section-desc">Pages are scraped and indexed once. Re-add a URL to force a fresh scrape (after removing the old entry).</div>
+      <div class="feed-list" id="webUrlList"></div>
+      <div class="add-entry-row">
+        <input class="add-entry-input" id="webUrlInput" type="url"
+               placeholder="https://example.com/page"
+               onkeydown="if(event.key==='Enter') addEntry('web')" />
+        <input class="add-entry-label-input" id="webLabelInput" type="text"
+               placeholder="Label (optional)"
+               onkeydown="if(event.key==='Enter') addEntry('web')" />
+        <button class="btn-add-entry" onclick="addEntry('web')">+ Add</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="settings-footer">
+    <button class="btn-save-config" id="saveConfigBtn" onclick="saveConnectorConfig()">Save changes</button>
+  </div>
+</div>
+
+<!-- Log viewer -->
+<div class="log-panel hidden" id="logPanel">
+  <div class="log-panel-header">
+    <div class="log-panel-title">
+      <div class="log-live-dot"></div>
+      application logs
+    </div>
+    <button class="log-panel-close" onclick="closeLogs()">← back</button>
+  </div>
+  <div class="log-entries" id="logEntries">
+    <div class="log-empty" id="logEmpty">No log entries yet.</div>
+  </div>
+</div>
+
 <script>
   // ── Config ───────────────────────────────────────────────
   const API_BASE = window.location.origin;
@@ -984,13 +1418,43 @@
   }
 
   function buildSourceTypes() {
-    if (activeFilter === 'gmail') return ['gmail'];
-    if (activeFilter === 'docs') return DOC_SOURCE_TYPES;
+    if (activeFilter === 'gmail')    return ['gmail'];
+    if (activeFilter === 'docs')     return DOC_SOURCE_TYPES;
+    if (activeFilter === 'drive')    return ['drive'];
+    if (activeFilter === 'calendar') return ['calendar'];
+    if (activeFilter === 'rss')      return ['rss'];
+    if (activeFilter === 'web')      return ['web'];
     return null; // all sources
   }
 
   // ── Boot ─────────────────────────────────────────────────
-  function boot() {
+  async function boot() {
+    let serverConfigured = false;
+    try {
+      const res = await fetch(`${API_BASE}/setup/status`);
+      const status = await res.json();
+      serverConfigured = status.isConfigured;
+    } catch { /* server still starting — fall through */ }
+
+    if (!serverConfigured && currentUserId) {
+      // Fresh container but browser still has the userId — silently restore
+      // the server-side profile so background sync can start without re-auth.
+      await fetch(`${API_BASE}/setup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: currentUserId })
+      }).catch(() => {});
+      serverConfigured = true;
+    }
+
+    if (!serverConfigured) {
+      // Truly first boot — no user anywhere
+      document.querySelector('.login-tagline').textContent =
+        'Get started — connect your Gmail to begin.';
+      showLoginScreen();
+      return;
+    }
+
     if (currentUserId) {
       showApp(currentUserId);
     } else {
@@ -1058,8 +1522,14 @@
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      // Success — store userId and transition to app
+      // Success — persist userId client-side and server-side
       localStorage.setItem('ram_userId', currentUserId);
+      // Tell the server who the user is so background sync can start
+      await fetch(`${API_BASE}/setup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: currentUserId })
+      }).catch(() => {}); // non-fatal if this fails
       showApp(currentUserId);
       showToast('✓ Connected to Gmail');
 
@@ -1403,9 +1873,151 @@
     el.style.height = Math.min(el.scrollHeight, 160) + 'px';
   }
 
+  // ── Sources / connector config ───────────────────────────
+  let connectorConfig = { rssFeeds: [], webUrls: [] };
+
+  async function openSettings() {
+    document.getElementById('settingsPanel').classList.remove('hidden');
+    try {
+      const res = await fetch(`${API_BASE}/config/connectors`);
+      if (res.ok) {
+        connectorConfig = await res.json();
+        renderConnectorConfig();
+      }
+    } catch { /* server may be starting */ }
+  }
+
+  function closeSettings() {
+    document.getElementById('settingsPanel').classList.add('hidden');
+  }
+
+  function renderConnectorConfig() {
+    renderFeedList('rssFeedList', connectorConfig.rssFeeds, 'rss');
+    renderFeedList('webUrlList',  connectorConfig.webUrls,  'web');
+  }
+
+  function renderFeedList(containerId, entries, type) {
+    const container = document.getElementById(containerId);
+    if (!entries || entries.length === 0) {
+      container.innerHTML = '<div class="feed-empty">No entries yet.</div>';
+      return;
+    }
+    container.innerHTML = entries.map((e, i) =>
+      `<div class="feed-entry">
+        <div class="feed-entry-info">
+          <span class="feed-url">${escapeHtml(e.url)}</span>
+          ${e.label ? `<span class="feed-entry-label">${escapeHtml(e.label)}</span>` : ''}
+        </div>
+        <button class="feed-delete" title="Remove" onclick="deleteEntry('${type}', ${i})">✕</button>
+      </div>`
+    ).join('');
+  }
+
+  function deleteEntry(type, index) {
+    if (type === 'rss') connectorConfig.rssFeeds.splice(index, 1);
+    else                connectorConfig.webUrls.splice(index, 1);
+    renderConnectorConfig();
+  }
+
+  function addEntry(type) {
+    const urlInputId   = type === 'rss' ? 'rssUrlInput'   : 'webUrlInput';
+    const labelInputId = type === 'rss' ? 'rssLabelInput' : 'webLabelInput';
+    const urlEl   = document.getElementById(urlInputId);
+    const labelEl = document.getElementById(labelInputId);
+
+    const url = urlEl.value.trim();
+    if (!url) { urlEl.focus(); return; }
+
+    const entry = { url, label: labelEl.value.trim() || null };
+    if (type === 'rss') connectorConfig.rssFeeds.push(entry);
+    else                connectorConfig.webUrls.push(entry);
+
+    urlEl.value   = '';
+    labelEl.value = '';
+    urlEl.focus();
+    renderConnectorConfig();
+  }
+
+  async function saveConnectorConfig() {
+    const btn = document.getElementById('saveConfigBtn');
+    btn.disabled    = true;
+    btn.textContent = 'Saving...';
+    try {
+      const res = await fetch(`${API_BASE}/config/connectors`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(connectorConfig)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      connectorConfig = await res.json();
+      renderConnectorConfig();
+      showToast('✓ Sources saved — takes effect on next sync');
+    } catch (err) {
+      showToast(`Failed to save: ${err.message}`, true);
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Save changes';
+    }
+  }
+
+  // ── Log viewer ───────────────────────────────────────────
+  let logPollTimer = null;
+
+  async function openLogs() {
+    document.getElementById('logPanel').classList.remove('hidden');
+    await refreshLogs();
+    logPollTimer = setInterval(refreshLogs, 2000);
+  }
+
+  function closeLogs() {
+    document.getElementById('logPanel').classList.add('hidden');
+    clearInterval(logPollTimer);
+    logPollTimer = null;
+  }
+
+  async function refreshLogs() {
+    try {
+      const res = await fetch(`${API_BASE}/logs`);
+      if (!res.ok) return;
+      const entries = await res.json();
+      renderLogs(entries);
+    } catch { /* server may be restarting */ }
+  }
+
+  function renderLogs(entries) {
+    const container = document.getElementById('logEntries');
+    const empty = document.getElementById('logEmpty');
+
+    if (!entries || entries.length === 0) {
+      if (empty) empty.style.display = '';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    // Render newest first
+    const reversed = [...entries].reverse();
+    container.innerHTML = reversed.map(e => {
+      const t = new Date(e.at);
+      const time = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const levelShort = e.level === 'Information' ? 'INFO'
+                       : e.level === 'Warning'     ? 'WARN'
+                       : e.level;
+      return `<div class="log-entry">
+        <span class="log-time">${escapeHtml(time)}</span>
+        <span class="log-level ${escapeHtml(e.level)}">${levelShort}</span>
+        <span class="log-cat" title="${escapeHtml(e.category)}">${escapeHtml(e.category)}</span>
+        <span class="log-msg">${escapeHtml(e.message)}</span>
+      </div>`;
+    }).join('');
+  }
+
   // ── Init ─────────────────────────────────────────────────
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closePreviewBtn();
+    if (e.key === 'Escape') {
+      closeSettings();
+      closeLogs();
+      closePreviewBtn();
+    }
   });
   boot();
 </script>

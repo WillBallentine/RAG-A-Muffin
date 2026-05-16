@@ -5,10 +5,21 @@ using RagAMuffin.Services.Interfaces;
 using RagAMuffin.Services;
 using RagAMuffin.Services.Connectors;
 using RagAMuffin.Services.Extractors;
+using RagAMuffin.Services.Logging;
 using RagAMuffin.Qdrant;
 using Qdrant.Client;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// In-memory log buffer — created before Build() so logger provider can share the same instance
+var logBuffer = new InMemoryLogBuffer();
+builder.Services.AddSingleton(logBuffer);
+
+// User profile — singleton so GmailConnector and setup endpoint share the same state
+builder.Services.AddSingleton<UserProfileService>();
+
+// Connector config — singleton so connectors and the config endpoint share the same state
+builder.Services.AddSingleton<ConnectorConfigService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -37,8 +48,20 @@ builder.Services.AddScoped<IChunker>(sp => new TextChunker(sp.GetRequiredService
 builder.Services.AddScoped<IEmailParser, EmailParser>();
 builder.Services.AddScoped<IIngestionPipeline, IngestionPipeline>();
 
+// Named HttpClients for connectors that scrape the web
+builder.Services.AddHttpClient("rss", c => c.Timeout = TimeSpan.FromSeconds(30));
+builder.Services.AddHttpClient("web", c =>
+{
+    c.Timeout = TimeSpan.FromSeconds(30);
+    c.DefaultRequestHeaders.UserAgent.ParseAdd("RAG-A-Muffin/1.0");
+});
+
 // Connectors — add more here as new source types are implemented
 builder.Services.AddScoped<IConnector, GmailConnector>();
+builder.Services.AddScoped<IConnector, RssConnector>();
+builder.Services.AddScoped<IConnector, WebConnector>();
+builder.Services.AddScoped<IConnector, GoogleDriveConnector>();
+builder.Services.AddScoped<IConnector, GoogleCalendarConnector>();
 
 // Document extractors — each handles a specific file extension
 builder.Services.AddScoped<IDocumentExtractor, PdfExtractor>();
@@ -51,6 +74,7 @@ builder.Services.AddHostedService<FileWatcherService>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+builder.Logging.AddProvider(new InMemoryLoggerProvider(logBuffer));
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 builder.Services.AddCors(options =>
@@ -106,6 +130,34 @@ app.MapGet("/oauth2callback", async (HttpRequest request, string code, string? u
     await GoogleAuth.ExchangeCodeForTokenAsync(resolvedUserId, code, redirectUri);
     return Results.Text("Authentication complete. You may close this page.");
 });
+
+// ── Setup endpoints ──────────────────────────────────────────────────────────
+
+app.MapGet("/setup/status", (UserProfileService profile) =>
+    Results.Ok(new { isConfigured = profile.IsConfigured, userId = profile.UserId }));
+
+app.MapPost("/setup", async (HttpRequest request, UserProfileService profile) =>
+{
+    var body = await request.ReadFromJsonAsync<SetupRequest>();
+    if (body is null || string.IsNullOrWhiteSpace(body.Email))
+        return Results.BadRequest(new { Message = "email is required." });
+
+    await profile.SetUserIdAsync(body.Email);
+    return Results.Ok(new { userId = body.Email });
+});
+
+// ── Log endpoint ─────────────────────────────────────────────────────────────
+
+app.MapGet("/logs", (InMemoryLogBuffer buffer) => Results.Ok(buffer.GetAll()));
+
+// ── Connector config endpoints ────────────────────────────────────────────────
+
+app.MapGet("/config/connectors",
+    (ConnectorConfigService cfg) => Results.Ok(cfg.Current));
+
+app.MapPut("/config/connectors",
+    async (ConnectorConfig config, ConnectorConfigService cfg) =>
+        Results.Ok(await cfg.SaveAsync(config)));
 
 // Dev endpoint: triggers an immediate Gmail sync for the configured user
 app.MapGet("/inbox", async (HttpRequest request, IIngestionPipeline pipeline, IEmailParser parser) =>
@@ -208,3 +260,5 @@ app.MapPost("/query/stream", async (QueryRequest request, IRagQueryService query
 });
 
 app.Run();
+
+record SetupRequest(string Email);

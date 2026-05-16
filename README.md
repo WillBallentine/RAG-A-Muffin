@@ -1,284 +1,418 @@
 # RAG-A-Muffin
 
-A local, privacy-first RAG (Retrieval-Augmented Generation) agent that runs on Raspberry Pi or any local device. Feed it your emails, documents, and personal data, then query it with AI assistance while keeping everything on your device.
+A local, privacy-first RAG (Retrieval-Augmented Generation) system that runs on a Raspberry Pi or any homelab device. Connect your Gmail, Google Drive, Google Calendar, RSS feeds, websites, and documents, then ask questions about your life in a streaming chat UI — with everything staying on your hardware.
 
 ## Why RAG-A-Muffin?
 
-- **100% Private**: Your data never leaves your device. No cloud uploads, no third-party APIs processing your personal information.
-- **Local AI**: Uses Ollama for on-device LLM inference. Run open-source models like Mistral, Llama, or others entirely locally.
-- **Efficient Retrieval**: Powered by Qdrant vector database for fast, semantic search across your documents.
-- **Lightweight**: Designed to run on Raspberry Pi and other resource-constrained devices.
-- **Open Source**: Full transparency into how your data is processed.
+- **100% private** — your data never leaves your device. No cloud uploads, no third-party APIs processing your personal information.
+- **Local AI** — uses [Ollama](https://ollama.com) for on-device LLM inference and embeddings. Models run entirely locally.
+- **Multi-source** — Gmail, Drive, Calendar, RSS feeds, web scraping, file uploads, and a watch folder all feed into one searchable index.
+- **Homelab-friendly** — designed to run on Raspberry Pi and other resource-constrained devices. GPU acceleration available for NVIDIA and AMD cards.
 
-## Features
+---
 
-- 📄 **Document Upload**: Ingest emails, PDFs, text files, and other documents
-- 🔍 **Semantic Search**: Find relevant information across your personal data
-- 🤖 **AI-Powered Queries**: Ask questions in natural language and get contextual answers
-- 🗃️ **Vector Embeddings**: Automatic chunking and embedding of documents
-- 🔐 **Privacy by Default**: Everything runs locally with zero external dependencies
-- 📡 **REST API**: Easy-to-use HTTP endpoints for integration
+## Quick Start
 
-## Prerequisites
+### Prerequisites
 
-- **Docker & Docker Compose** (recommended for easiest setup)
-  - [Install Docker Desktop](https://www.docker.com/products/docker-desktop)
-  - Includes both Docker and Docker Compose
+- [Docker](https://www.docker.com/products/docker-desktop) and Docker Compose
+- A `credentials.json` file from Google Cloud (see [Google Setup](#google-setup) below)
 
-Or, for local development:
+### 1. Clone and place credentials
 
-- **.NET 8 SDK** or later
-- **Qdrant** (vector database)
-- **Ollama** (local LLM runtime)
+```bash
+git clone https://github.com/youruser/rag-a-muffin.git
+cd rag-a-muffin
+# Place your credentials.json here (see Google Setup)
+```
 
-## Quick Start (Docker)
-
-The easiest way to get started is with Docker Compose, which automatically sets up all services.
+### 2. Start everything
 
 ```bash
 docker compose up -d
 ```
 
-This will start:
-- **Qdrant** (vector database) on `http://localhost:6333`
-- **Ollama** (LLM runtime) on `http://localhost:11434`
-- **RAG-A-Muffin API** on `http://localhost:8000`
+This starts three services:
 
-### Access the API
+| Service | Port | Purpose |
+|---|---|---|
+| RAG-A-Muffin | `8000` | Web UI + API |
+| Qdrant | `6333 / 6334` | Vector database |
+| Ollama | `11434` | Local LLM + embeddings |
 
-Once running, the API documentation is available at:
-- [Swagger UI](http://localhost:8000/swagger/index.html)
+Ollama pulls `nomic-embed-text` and `llama3` automatically on first boot. This takes a few minutes.
 
-## Gmail Setup
+### 3. Open the UI
 
-This app uses your own Google Cloud credentials to access your Gmail. This keeps
-your data entirely local — your emails never touch any external server.
+Navigate to **http://localhost:8000**.
+
+On first boot you'll see a setup screen — enter your Gmail address and click **Connect Gmail** to authorize. Your credentials are stored locally in `./data/tokens/` and never leave your machine.
+
+---
+
+## Google Setup
+
+RAG-A-Muffin uses your own Google Cloud credentials to access Gmail, Drive, and Calendar. Your data is fetched directly from Google to your device — no intermediary server.
 
 ### Step 1 — Create a Google Cloud Project
 
-1. Go to [console.cloud.google.com](https://console.cloud.google.com) and sign in
-2. Click **Select a project → New Project**, give it any name, click **Create**
+1. Go to [console.cloud.google.com](https://console.cloud.google.com) and sign in.
+2. Click **Select a project → New Project**, give it any name, click **Create**.
 
-### Step 2 — Enable the Gmail API
+### Step 2 — Enable APIs
 
-1. In the left menu go to **APIs & Services → Library**
-2. Search for **Gmail API** and click **Enable**
+In **APIs & Services → Library**, enable all three:
 
-### Step 3 — Create OAuth Credentials
+- **Gmail API**
+- **Google Drive API**
+- **Google Calendar API**
 
-1. Go to **APIs & Services → Credentials → Create Credentials → OAuth client ID**
-2. If prompted to configure a consent screen first, click **Configure Consent Screen**:
-   - Choose **External**, click **Create**
-   - Fill in an app name (anything) and your email, click **Save and Continue** through the remaining screens
-3. Back in Create OAuth client ID, select **Desktop app** as the application type
-4. Click **Create**, then **Download JSON**
-5. Rename the downloaded file to `credentials.json` and place it in the app's root folder
+### Step 3 — Configure the OAuth consent screen
 
-### Step 4 — Run the App
+1. Go to **APIs & Services → OAuth consent screen**.
+2. Choose **External**, click **Create**.
+3. Fill in an app name (e.g. "RAG-A-Muffin") and your email. Click through the remaining screens.
+4. On the **Scopes** screen you can skip adding scopes — the app requests them at sign-in time.
+5. On the **Test users** screen, add your Gmail address.
 
-```bash
-docker compose up --build
-```
+### Step 4 — Create OAuth credentials
 
-### Authenticate with your Gmail
+1. Go to **APIs & Services → Credentials → Create Credentials → OAuth client ID**.
+2. Select **Desktop app** as the application type.
+3. Click **Create**, then **Download JSON**.
+4. Rename the file to `credentials.json` and place it in the repo root (next to `docker-compose.yml`).
 
-1. Open the authorization URL in your browser:
-   - `http://localhost:8000/authorize?userId=you@example.com`
-2. Sign in with your Google account.
-3. After consent, Google redirects back to `/oauth2callback` and the app stores a refresh token locally.
+### Step 5 — Authorize in the UI
 
-On first launch, your browser will open a Google sign-in page. Sign in with the
-Gmail account you want to query. Google may show an "unverified app" warning —
-this is expected since these are your own credentials. Click **Continue**.
+Start the app and open **http://localhost:8000**. Enter your Gmail address and click **Connect Gmail**. A Google sign-in tab opens — complete sign-in there, then click **I've signed in** in the app.
 
-Your login is saved locally and won't be required again.
+The app requests read-only access to Gmail, Drive, and Calendar in one authorization. If you previously authorized with Gmail only, you'll need to re-authorize to unlock Drive and Calendar sync.
 
-If there is no stored credential, `GET /inbox?userId=you@example.com` will return a JSON response containing an authorization URL.
+> Google may show an "unverified app" warning since these are your own developer credentials. Click **Continue** to proceed.
 
-## Local Development
+---
 
-### Install Dependencies
+## Data Sources
 
-1. **Install .NET 8**: https://dotnet.microsoft.com/download/dotnet/8.0
+All sources funnel into the same vector store. Use the **source filter chips** in the chat UI to scope queries to a specific source type.
 
-2. **Install Qdrant** (vector database):
-   ```bash
-   docker run -p 6333:6333 qdrant/qdrant
-   ```
+### Gmail
 
-3. **Install Ollama** (local LLM):
-   ```bash
-   # Visit https://ollama.ai for installation instructions
-   ollama serve
-   # In another terminal, pull a model:
-   ollama pull mistral
-   ```
+Automatically syncs your inbox and sent mail on a configurable schedule (default: every 60 minutes). Email threads are deduplicated, quoted reply text is stripped, and signatures are removed before indexing.
 
-### Build & Run
+### Google Drive
 
-```bash
-cd rag-a-muffin
-dotnet restore
-dotnet build
-dotnet run
-```
+Syncs files from your Drive on each sync cycle. Supported formats:
 
-The API will be available at `http://localhost:5000` (development) or `http://localhost:8000` (Docker).
+- **Google Docs** — exported as plain text
+- **Google Sheets** — exported as CSV
+- **PDF, DOCX, TXT, MD** — downloaded and extracted locally
 
-## API Endpoints (still in development)
+Configure which folders to sync in `appsettings.json` under `Connectors:Drive:FolderIds`. Leave the array empty to sync recent files from your entire Drive.
 
-### Get Sample Document
-```
-GET /document
-```
-Returns a sample document for testing. Will eventually allow you to find documents and get the full pdf or other doc type.
+### Google Calendar
 
-### Upload Document (manually add a document not pulled in automatically. think scan or mail)
-```
-POST /upload
-Content-Type: application/json
+Syncs events from your primary calendar. Configure the date window in `appsettings.json`:
 
-{
-  "name": "My Document",
-  "content": "Your document content here..."
+```json
+"Calendar": {
+  "DaysBack": 30,
+  "DaysAhead": 7
 }
 ```
-Chunks the document and stores embeddings in Qdrant for later retrieval.
 
-### Query with RAG
-```
-POST /query
-Content-Type: application/json
+Event title, time, location, attendees, and description are all indexed.
 
-{
-  "question": "What did I discuss in my emails about project X?"
+### RSS / Atom Feeds
+
+Add feed URLs through the **Sources** panel (gear icon in the header) or in `appsettings.json`:
+
+```json
+"Rss": {
+  "Feeds": [
+    { "Url": "https://simonwillison.net/atom/everything/", "Label": "Simon Willison" },
+    { "Url": "https://hnrss.org/frontpage", "Label": "Hacker News" }
+  ]
 }
 ```
-Returns AI-generated answer with relevant context from your documents.
 
-See [Swagger UI](http://localhost:8000/swagger/index.html) for complete API documentation once running.
+Each article is deduplicated by its feed item ID — already-indexed articles are skipped on subsequent syncs.
+
+### Web URL Scraper
+
+Scrape static pages and index their text content. Configure URLs through the **Sources** panel or in `appsettings.json`:
+
+```json
+"Web": {
+  "Urls": [
+    { "Url": "https://wiki.example.com/my-page", "Label": "My Wiki" }
+  ]
+}
+```
+
+Pages are indexed once per URL. To re-index a changed page, remove the entry and re-add it (the URL-based document ID will be treated as new).
+
+### File Upload
+
+Click **Upload Doc** in the header to upload files directly from the browser. Supported formats: **PDF, DOCX, DOC, TXT, MD**. Files are deduplicated by content hash — uploading the same file twice is a no-op.
+
+### Watch Folder
+
+Drop files into `./data/watch/` on the host and they're picked up and indexed automatically within seconds. Same format support as file upload.
+
+---
+
+## Querying
+
+Type a question in the chat input and press Enter. The app:
+
+1. Embeds your query with `nomic-embed-text`
+2. Searches the vector store for the most relevant chunks
+3. Streams an answer from `llama3` using those chunks as context
+4. Shows clickable **source cards** below the answer — tap any card to preview the matched text
+
+### Source filters
+
+Use the chips above the input to scope results:
+
+| Chip | Sources searched |
+|---|---|
+| All | Everything |
+| Email | Gmail |
+| Docs | Uploaded files and watch folder |
+| Drive | Google Drive |
+| Calendar | Google Calendar |
+| RSS | RSS / Atom feeds |
+| Web | Scraped web pages |
+
+### Managing RSS feeds and web URLs
+
+Click the **Sources** (gear) icon in the header to open the connector config panel. Add or remove RSS feeds and web URLs without editing any config files. Changes take effect on the next sync cycle.
+
+---
+
+## GPU Acceleration
+
+### NVIDIA
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.nvidia.yml up -d
+```
+
+### AMD (ROCm)
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.amd.yml up -d
+```
+
+---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────┐
-│        RAG-A-Muffin (.NET 8 API)            │
-│  - Document ingestion & chunking            │
-│  - Query handling & orchestration           │
-│  - REST API endpoints                       │
-└────────┬──────────────────┬─────────────────┘
-         │                  │
-         ▼                  ▼
-    ┌─────────┐        ┌──────────┐
-    │ Qdrant  │        │  Ollama  │
-    │ Vector  │        │   LLM    │
-    │   DB    │        │ Inference│
-    └─────────┘        └──────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    RAG-A-Muffin (.NET 8)                        │
+│                                                                  │
+│  ┌──────────────┐  ┌─────────────────┐  ┌──────────────────┐   │
+│  │  Chat UI     │  │  Connectors     │  │  Ingestion       │   │
+│  │  (SSE stream)│  │  Gmail          │  │  Chunker         │   │
+│  │  Source chips│  │  Drive          │  │  Embedder        │   │
+│  │  Citations   │  │  Calendar       │  │  Deduplication   │   │
+│  │  Sources mgr │  │  RSS / Web      │  │  Vector upsert   │   │
+│  └──────────────┘  │  File / Watch   │  └──────────────────┘   │
+│                    └─────────────────┘                          │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+              ┌──────────────┴──────────────┐
+              ▼                             ▼
+        ┌───────────┐               ┌─────────────┐
+        │  Qdrant   │               │   Ollama    │
+        │  Vector   │               │  llama3     │
+        │  Database │               │  nomic-     │
+        │           │               │  embed-text │
+        └───────────┘               └─────────────┘
 ```
 
-- **RAG-A-Muffin**: Core API service (ASP.NET Core)
-- **Qdrant**: Vector database for storing and retrieving embeddings
-- **Ollama**: Local LLM runtime for embeddings and inference
+**Models used:**
+
+| Role | Model |
+|---|---|
+| Embeddings | `nomic-embed-text` (768-dim, Int8 quantized in Qdrant) |
+| Inference (streaming) | `llama3` |
+
+Both models run locally via Ollama and are pulled automatically on first start.
+
+---
 
 ## Configuration
 
-Configuration is managed through `appsettings.json`:
+`appsettings.json` controls infrastructure settings. Connector sources (RSS feeds, web URLs) can also be managed through the **Sources** UI, which persists to `./data/connectors.json`.
 
 ```json
 {
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information"
+  "Ollama": {
+    "BaseUrl": "http://ollama:11434"
+  },
+  "Qdrant": {
+    "Host": "qdrant",
+    "Port": 6334
+  },
+  "Ingestion": {
+    "IntervalMinutes": 60,
+    "MaxEmailsPerSync": 100
+  },
+  "Connectors": {
+    "Rss": {
+      "Feeds": []
+    },
+    "Web": {
+      "Urls": []
+    },
+    "Drive": {
+      "FolderIds": [],
+      "MaxFiles": 50
+    },
+    "Calendar": {
+      "DaysBack": 30,
+      "DaysAhead": 7
     }
   }
 }
 ```
 
-Update connection strings and API endpoints as needed for your setup.
+---
 
-## Roadmap
+## Data Persistence
 
-- [ ] Email ingestion directly from IMAP/Exchange
-- [ ] PDF text extraction
-- [ ] Conversation history & multi-turn queries
-- [ ] Document management UI
-- [ ] Custom model selection
-- [ ] Batch processing for large datasets
-- [ ] Export & sharing (encrypted)
+All persistent data lives in `./data/` on the host:
 
-## Privacy & Security
+| Path | Contents |
+|---|---|
+| `./data/tokens/` | Google OAuth refresh tokens |
+| `./data/uploads/` | Uploaded files |
+| `./data/watch/` | Watch folder (drop files here for auto-ingestion) |
+| `./data/connectors.json` | RSS feeds and web URLs saved via the Sources UI |
+| `qdrant_data` (Docker volume) | Vector embeddings |
+| `ollama_data` (Docker volume) | Downloaded models |
 
-- **No external calls**: All processing happens locally
-- **No data persistence beyond Qdrant**: Documents are vectorized and stored only in the local vector database
-- **No telemetry**: No tracking, logging to external services, or analytics
-- **Open source**: Audit the code yourself
+---
+
+## API Reference
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/setup/status` | Check whether a user is configured |
+| `POST` | `/setup` | Set the active user (`{ "email": "you@gmail.com" }`) |
+| `GET` | `/authorize?userId=` | Start Google OAuth flow |
+| `GET` | `/oauth2callback` | OAuth redirect handler |
+| `POST` | `/query` | One-shot RAG query |
+| `POST` | `/query/stream` | Streaming RAG query (SSE) |
+| `POST` | `/ingest/upload` | Upload a file for ingestion |
+| `GET` | `/inbox?userId=` | Manually trigger a Gmail sync |
+| `GET` | `/config/connectors` | Get current RSS / web connector config |
+| `PUT` | `/config/connectors` | Save RSS / web connector config |
+| `GET` | `/logs` | Fetch recent application log entries |
+
+Swagger UI is available at **http://localhost:8000/swagger** in development mode.
+
+---
+
+## Project Structure
+
+```
+rag-a-muffin/
+├── Auth/
+│   └── VendorAuth.cs          # Google OAuth (Gmail, Drive, Calendar)
+├── Models/                    # Shared data models
+│   ├── SourceDocument.cs      # Common document model for all connectors
+│   ├── EmbeddedChunk.cs       # Vector store payload
+│   ├── ScoredChunk.cs         # Search result
+│   └── QueryRequest.cs        # Query + source type filter
+├── Qdrant/
+│   └── QdrantInitializer.cs   # Collection + index setup
+├── Services/
+│   ├── Interfaces/            # IConnector, IVectorStore, IRagQueryService, …
+│   ├── Connectors/            # GmailConnector, GoogleDriveConnector,
+│   │                          # GoogleCalendarConnector, RssConnector, WebConnector
+│   ├── Extractors/            # PdfExtractor, DocxExtractor, PlainTextExtractor
+│   ├── Logging/               # InMemoryLogBuffer + ILoggerProvider
+│   ├── ConnectorConfigService.cs  # Live RSS/web config (persisted to connectors.json)
+│   ├── ConnectorSyncService.cs    # BackgroundService: runs all connectors on interval
+│   ├── FileWatcherService.cs      # BackgroundService: watches ./data/watch/
+│   ├── FileIngestionService.cs    # Upload handler
+│   ├── IngestionPipeline.cs       # Chunk → embed → upsert
+│   ├── RagQueryService.cs         # Embed query → vector search → LLM → stream
+│   ├── QdrantService.cs           # IVectorStore implementation
+│   └── UserProfileService.cs      # Singleton: active user identity
+├── wwwroot/
+│   └── index.html             # Single-page chat UI
+├── Program.cs                 # Service registration + minimal API endpoints
+└── appsettings.json
+```
+
+---
+
+## Local Development
+
+```bash
+# Start dependencies
+docker run -d -p 6333:6333 -p 6334:6334 qdrant/qdrant
+# Install and start Ollama: https://ollama.com
+ollama pull nomic-embed-text
+ollama pull llama3
+
+# Run the app
+cd rag-a-muffin
+dotnet run
+```
+
+The app will be available at **http://localhost:5000** (or the port shown in the console).
+
+Update `appsettings.Development.json` to point at local services:
+
+```json
+{
+  "Ollama": { "BaseUrl": "http://localhost:11434" },
+  "Qdrant": { "Host": "localhost", "Port": 6334 }
+}
+```
+
+---
 
 ## Troubleshooting
 
-### Services won't start in Docker
+**Ollama models not loaded yet** — the first `docker compose up` pulls models which takes several minutes. Watch progress with:
 ```bash
-# Check if ports are already in use
-lsof -i :6333  # Qdrant
-lsof -i :11434 # Ollama
-lsof -i :8000  # API
-
-# Force restart everything
-docker-compose down -v
-docker-compose up --build
+docker compose logs -f ollama
 ```
 
-### Ollama model not found
+**"Unverified app" warning from Google** — expected. You're using your own developer credentials. Click **Continue**.
+
+**Drive or Calendar not syncing** — these require scopes that weren't in the original Gmail-only authorization. Sign out in the UI and re-authorize to grant all three scopes at once.
+
+**Port conflicts** — check which process is using a port:
 ```bash
-# List available models
-ollama list
+# Linux / macOS
+lsof -i :8000
 
-# Pull a model
-ollama pull mistral
+# Windows
+netstat -ano | findstr :8000
 ```
 
-### Connection refused errors
-Ensure all services are running and healthy:
+**Force a full restart:**
 ```bash
-docker-compose ps
+docker compose down -v
+docker compose up --build -d
 ```
 
-## Development
+---
 
-### Project Structure
-```
-rag-a-muffin/
-├── Program.cs           # API setup & endpoints
-├── Models/              # Data models
-├── Services/            # Business logic (embedding, retrieval)
-├── Repositories/        # Data access layer
-├── Properties/          # Configuration
-└── appsettings.json     # Settings
-```
+## Privacy & Security
 
-### Running Tests
-```bash
-dotnet test
-```
-
-### Building for Production
-```bash
-dotnet publish -c Release -o out
-```
-
-## Contributing
-
-Contributions welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request with a clear description
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Support
-
-For issues, questions, or suggestions, please open an issue on GitHub.
+- **No external calls** during inference — all LLM and embedding processing runs locally via Ollama.
+- **Google API calls** go directly from your device to Google's servers using your own OAuth credentials. No intermediary server.
+- **OAuth tokens** are stored in `./data/tokens/` on your host machine and are never included in the Docker image.
+- **No telemetry** — no tracking, no analytics, no external logging.
 
 ---
 

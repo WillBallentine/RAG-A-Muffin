@@ -68,6 +68,23 @@
           }
         }
       },
+      "Google.Apis.Calendar.v3/1.74.0.4073": {
+        "type": "package",
+        "dependencies": {
+          "Google.Apis": "1.74.0",
+          "Google.Apis.Auth": "1.74.0"
+        },
+        "compile": {
+          "lib/net6.0/Google.Apis.Calendar.v3.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Google.Apis.Calendar.v3.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
       "Google.Apis.Core/1.74.0": {
         "type": "package",
         "dependencies": {
@@ -80,6 +97,23 @@
         },
         "runtime": {
           "lib/net6.0/Google.Apis.Core.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
+      "Google.Apis.Drive.v3/1.74.0.4135": {
+        "type": "package",
+        "dependencies": {
+          "Google.Apis": "1.74.0",
+          "Google.Apis.Auth": "1.74.0"
+        },
+        "compile": {
+          "lib/net6.0/Google.Apis.Drive.v3.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Google.Apis.Drive.v3.dll": {
             "related": ".pdb;.xml"
           }
         }
@@ -157,6 +191,19 @@
         "runtime": {
           "lib/net8.0/Grpc.Net.Common.dll": {
             "related": ".pdb;.xml"
+          }
+        }
+      },
+      "HtmlAgilityPack/1.12.4": {
+        "type": "package",
+        "compile": {
+          "lib/net7.0/HtmlAgilityPack.dll": {
+            "related": ".deps.json;.pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net7.0/HtmlAgilityPack.dll": {
+            "related": ".deps.json;.pdb;.xml"
           }
         }
       },
@@ -511,6 +558,22 @@
           "buildTransitive/net8.0/_._": {}
         }
       },
+      "System.ServiceModel.Syndication/10.0.8": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/System.ServiceModel.Syndication.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/System.ServiceModel.Syndication.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net8.0/_._": {}
+        }
+      },
       "System.Text.Encodings.Web/10.0.6": {
         "type": "package",
         "compile": {
@@ -758,6 +821,28 @@
         "lib/netstandard2.0/Google.Apis.Auth.xml"
       ]
     },
+    "Google.Apis.Calendar.v3/1.74.0.4073": {
+      "sha512": "6HJHia34FzfWqcHalP7s1tRMHM9Duog2GaX1SE7scrzZGToN42Sz8287oenqqTBu+rTB3zBQrXiyNbGnwN6USw==",
+      "type": "package",
+      "path": "google.apis.calendar.v3/1.74.0.4073",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "NuGetIcon.png",
+        "google.apis.calendar.v3.1.74.0.4073.nupkg.sha512",
+        "google.apis.calendar.v3.nuspec",
+        "lib/net462/Google.Apis.Calendar.v3.dll",
+        "lib/net462/Google.Apis.Calendar.v3.pdb",
+        "lib/net462/Google.Apis.Calendar.v3.xml",
+        "lib/net6.0/Google.Apis.Calendar.v3.dll",
+        "lib/net6.0/Google.Apis.Calendar.v3.pdb",
+        "lib/net6.0/Google.Apis.Calendar.v3.xml",
+        "lib/netstandard2.0/Google.Apis.Calendar.v3.dll",
+        "lib/netstandard2.0/Google.Apis.Calendar.v3.pdb",
+        "lib/netstandard2.0/Google.Apis.Calendar.v3.xml"
+      ]
+    },
     "Google.Apis.Core/1.74.0": {
       "sha512": "gWOIiks6yo2TRliIyy10V18BJOO2BfUSPJFiTW6Tfap4tm3hFj7nvYU3XIfwzAxwoIy6nsBoqVDt9iBDSXrvYQ==",
       "type": "package",
@@ -778,6 +863,28 @@
         "lib/netstandard2.0/Google.Apis.Core.dll",
         "lib/netstandard2.0/Google.Apis.Core.pdb",
         "lib/netstandard2.0/Google.Apis.Core.xml"
+      ]
+    },
+    "Google.Apis.Drive.v3/1.74.0.4135": {
+      "sha512": "RmWmfrfASvaoOnSV0pMKvuYAk3SnONvSdcMk3RuL/e2o/aVWy8+V4LGjiZfMNZKpdIvhwpVh4scrhft/xpO92A==",
+      "type": "package",
+      "path": "google.apis.drive.v3/1.74.0.4135",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "NuGetIcon.png",
+        "google.apis.drive.v3.1.74.0.4135.nupkg.sha512",
+        "google.apis.drive.v3.nuspec",
+        "lib/net462/Google.Apis.Drive.v3.dll",
+        "lib/net462/Google.Apis.Drive.v3.pdb",
+        "lib/net462/Google.Apis.Drive.v3.xml",
+        "lib/net6.0/Google.Apis.Drive.v3.dll",
+        "lib/net6.0/Google.Apis.Drive.v3.pdb",
+        "lib/net6.0/Google.Apis.Drive.v3.xml",
+        "lib/netstandard2.0/Google.Apis.Drive.v3.dll",
+        "lib/netstandard2.0/Google.Apis.Drive.v3.pdb",
+        "lib/netstandard2.0/Google.Apis.Drive.v3.xml"
       ]
     },
     "Google.Apis.Gmail.v1/1.74.0.4134": {
@@ -903,6 +1010,51 @@
         "lib/netstandard2.1/Grpc.Net.Common.pdb",
         "lib/netstandard2.1/Grpc.Net.Common.xml",
         "packageIcon.png"
+      ]
+    },
+    "HtmlAgilityPack/1.12.4": {
+      "sha512": "ljqvBabvFwKoLniuoQKO8b5bJfJweKLs4fUNS/V5dsvpo0A8MlJqxxn9XVmP2DaskbUXty6IYaWAi1SArGIMeQ==",
+      "type": "package",
+      "path": "htmlagilitypack/1.12.4",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "htmlagilitypack.1.12.4.nupkg.sha512",
+        "htmlagilitypack.nuspec",
+        "lib/Net35/HtmlAgilityPack.dll",
+        "lib/Net35/HtmlAgilityPack.pdb",
+        "lib/Net35/HtmlAgilityPack.xml",
+        "lib/Net40-client/HtmlAgilityPack.dll",
+        "lib/Net40-client/HtmlAgilityPack.pdb",
+        "lib/Net40-client/HtmlAgilityPack.xml",
+        "lib/Net40/HtmlAgilityPack.XML",
+        "lib/Net40/HtmlAgilityPack.dll",
+        "lib/Net40/HtmlAgilityPack.pdb",
+        "lib/Net45/HtmlAgilityPack.XML",
+        "lib/Net45/HtmlAgilityPack.dll",
+        "lib/Net45/HtmlAgilityPack.pdb",
+        "lib/NetCore45/HtmlAgilityPack.XML",
+        "lib/NetCore45/HtmlAgilityPack.dll",
+        "lib/NetCore45/HtmlAgilityPack.pdb",
+        "lib/net7.0/HtmlAgilityPack.deps.json",
+        "lib/net7.0/HtmlAgilityPack.dll",
+        "lib/net7.0/HtmlAgilityPack.pdb",
+        "lib/net7.0/HtmlAgilityPack.xml",
+        "lib/netstandard2.0/HtmlAgilityPack.deps.json",
+        "lib/netstandard2.0/HtmlAgilityPack.dll",
+        "lib/netstandard2.0/HtmlAgilityPack.pdb",
+        "lib/netstandard2.0/HtmlAgilityPack.xml",
+        "lib/portable-net45+netcore45+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.XML",
+        "lib/portable-net45+netcore45+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.dll",
+        "lib/portable-net45+netcore45+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.pdb",
+        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.XML",
+        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.dll",
+        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.pdb",
+        "lib/uap10.0/HtmlAgilityPack.XML",
+        "lib/uap10.0/HtmlAgilityPack.dll",
+        "lib/uap10.0/HtmlAgilityPack.pdb",
+        "lib/uap10.0/HtmlAgilityPack.pri",
+        "readme.md"
       ]
     },
     "Microsoft.AspNetCore.OpenApi/8.0.26": {
@@ -1698,6 +1850,35 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "System.ServiceModel.Syndication/10.0.8": {
+      "sha512": "xfzCPN0jCQQIS90uKla37E16/0EFxdhs+cOREumboSpSPA2smXyk7jgfFCOXxEAgmZzz5WkR7wckNAAVrSQtSg==",
+      "type": "package",
+      "path": "system.servicemodel.syndication/10.0.8",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/System.ServiceModel.Syndication.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net8.0/_._",
+        "buildTransitive/netcoreapp2.0/System.ServiceModel.Syndication.targets",
+        "lib/net10.0/System.ServiceModel.Syndication.dll",
+        "lib/net10.0/System.ServiceModel.Syndication.xml",
+        "lib/net462/System.ServiceModel.Syndication.dll",
+        "lib/net462/System.ServiceModel.Syndication.xml",
+        "lib/net8.0/System.ServiceModel.Syndication.dll",
+        "lib/net8.0/System.ServiceModel.Syndication.xml",
+        "lib/net9.0/System.ServiceModel.Syndication.dll",
+        "lib/net9.0/System.ServiceModel.Syndication.xml",
+        "lib/netstandard2.0/System.ServiceModel.Syndication.dll",
+        "lib/netstandard2.0/System.ServiceModel.Syndication.xml",
+        "system.servicemodel.syndication.10.0.8.nupkg.sha512",
+        "system.servicemodel.syndication.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
     "System.Text.Encodings.Web/10.0.6": {
       "sha512": "o7zWD39jHesxpHyMSWAf+CjM+NaEIV49IJ8tasAsnaVkRcLP33+5aobgxeKLJRLQQfeciO7BbW5vXCUMzPoU6w==",
       "type": "package",
@@ -1988,12 +2169,16 @@
       "DocumentFormat.OpenXml >= 3.5.1",
       "Google.Apis >= 1.74.0",
       "Google.Apis.Auth >= 1.74.0",
+      "Google.Apis.Calendar.v3 >= 1.74.0.4073",
+      "Google.Apis.Drive.v3 >= 1.74.0.4135",
       "Google.Apis.Gmail.v1 >= 1.74.0.4134",
+      "HtmlAgilityPack >= 1.12.4",
       "Microsoft.AspNetCore.OpenApi >= 8.0.26",
       "Microsoft.Extensions.AI >= 10.5.2",
       "Newtonsoft.Json >= 13.0.4",
       "Qdrant.Client >= 1.18.1",
       "Swashbuckle.AspNetCore >= 6.6.2",
+      "System.ServiceModel.Syndication >= 10.0.8",
       "UglyToad.PdfPig >= 1.7.0-custom-5"
     ]
   },
@@ -2059,9 +2244,21 @@
             "target": "Package",
             "version": "[1.74.0, )"
           },
+          "Google.Apis.Calendar.v3": {
+            "target": "Package",
+            "version": "[1.74.0.4073, )"
+          },
+          "Google.Apis.Drive.v3": {
+            "target": "Package",
+            "version": "[1.74.0.4135, )"
+          },
           "Google.Apis.Gmail.v1": {
             "target": "Package",
             "version": "[1.74.0.4134, )"
+          },
+          "HtmlAgilityPack": {
+            "target": "Package",
+            "version": "[1.12.4, )"
           },
           "Microsoft.AspNetCore.OpenApi": {
             "target": "Package",
@@ -2082,6 +2279,10 @@
           "Swashbuckle.AspNetCore": {
             "target": "Package",
             "version": "[6.6.2, )"
+          },
+          "System.ServiceModel.Syndication": {
+            "target": "Package",
+            "version": "[10.0.8, )"
           },
           "UglyToad.PdfPig": {
             "target": "Package",

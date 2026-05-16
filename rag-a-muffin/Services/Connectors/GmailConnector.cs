@@ -17,11 +17,12 @@ namespace RagAMuffin.Services.Connectors
         public GmailConnector(
             IEmailParser parser,
             ILogger<GmailConnector> logger,
+            UserProfileService profile,
             IConfiguration configuration)
         {
             _parser = parser;
             _logger = logger;
-            _userId = configuration["Ingestion:UserId"] ?? string.Empty;
+            _userId = profile.UserId ?? string.Empty;
             _maxPerSync = int.TryParse(configuration["Ingestion:MaxEmailsPerSync"], out var max) ? max : 100;
         }
 
@@ -29,7 +30,7 @@ namespace RagAMuffin.Services.Connectors
         {
             if (string.IsNullOrWhiteSpace(_userId))
             {
-                _logger.LogWarning("GmailConnector: Ingestion:UserId not configured — skipping");
+                _logger.LogWarning("GmailConnector: no user configured — complete setup to enable sync");
                 return [];
             }
 

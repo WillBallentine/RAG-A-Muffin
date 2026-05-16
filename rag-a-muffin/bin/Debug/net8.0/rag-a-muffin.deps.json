@@ -11,12 +11,16 @@
           "DocumentFormat.OpenXml": "3.5.1",
           "Google.Apis": "1.74.0",
           "Google.Apis.Auth": "1.74.0",
+          "Google.Apis.Calendar.v3": "1.74.0.4073",
+          "Google.Apis.Drive.v3": "1.74.0.4135",
           "Google.Apis.Gmail.v1": "1.74.0.4134",
+          "HtmlAgilityPack": "1.12.4",
           "Microsoft.AspNetCore.OpenApi": "8.0.26",
           "Microsoft.Extensions.AI": "10.5.2",
           "Newtonsoft.Json": "13.0.4",
           "Qdrant.Client": "1.18.1",
           "Swashbuckle.AspNetCore": "6.6.2",
+          "System.ServiceModel.Syndication": "10.0.8",
           "UglyToad.PdfPig": "1.7.0-custom-5"
         },
         "runtime": {
@@ -69,6 +73,18 @@
           }
         }
       },
+      "Google.Apis.Calendar.v3/1.74.0.4073": {
+        "dependencies": {
+          "Google.Apis": "1.74.0",
+          "Google.Apis.Auth": "1.74.0"
+        },
+        "runtime": {
+          "lib/net6.0/Google.Apis.Calendar.v3.dll": {
+            "assemblyVersion": "1.74.0.4073",
+            "fileVersion": "1.74.0.4073"
+          }
+        }
+      },
       "Google.Apis.Core/1.74.0": {
         "dependencies": {
           "Newtonsoft.Json": "13.0.4"
@@ -77,6 +93,18 @@
           "lib/net6.0/Google.Apis.Core.dll": {
             "assemblyVersion": "1.74.0.0",
             "fileVersion": "1.74.0.0"
+          }
+        }
+      },
+      "Google.Apis.Drive.v3/1.74.0.4135": {
+        "dependencies": {
+          "Google.Apis": "1.74.0",
+          "Google.Apis.Auth": "1.74.0"
+        },
+        "runtime": {
+          "lib/net6.0/Google.Apis.Drive.v3.dll": {
+            "assemblyVersion": "1.74.0.4135",
+            "fileVersion": "1.74.0.4135"
           }
         }
       },
@@ -128,6 +156,14 @@
           "lib/net8.0/Grpc.Net.Common.dll": {
             "assemblyVersion": "2.0.0.0",
             "fileVersion": "2.71.0.0"
+          }
+        }
+      },
+      "HtmlAgilityPack/1.12.4": {
+        "runtime": {
+          "lib/net7.0/HtmlAgilityPack.dll": {
+            "assemblyVersion": "1.12.4.0",
+            "fileVersion": "1.12.4.0"
           }
         }
       },
@@ -336,6 +372,14 @@
           }
         }
       },
+      "System.ServiceModel.Syndication/10.0.8": {
+        "runtime": {
+          "lib/net8.0/System.ServiceModel.Syndication.dll": {
+            "assemblyVersion": "10.0.0.8",
+            "fileVersion": "10.0.826.23019"
+          }
+        }
+      },
       "System.Text.Encodings.Web/10.0.6": {
         "runtime": {
           "lib/net8.0/System.Text.Encodings.Web.dll": {
@@ -466,12 +510,26 @@
       "path": "google.apis.auth/1.74.0",
       "hashPath": "google.apis.auth.1.74.0.nupkg.sha512"
     },
+    "Google.Apis.Calendar.v3/1.74.0.4073": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-6HJHia34FzfWqcHalP7s1tRMHM9Duog2GaX1SE7scrzZGToN42Sz8287oenqqTBu+rTB3zBQrXiyNbGnwN6USw==",
+      "path": "google.apis.calendar.v3/1.74.0.4073",
+      "hashPath": "google.apis.calendar.v3.1.74.0.4073.nupkg.sha512"
+    },
     "Google.Apis.Core/1.74.0": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-gWOIiks6yo2TRliIyy10V18BJOO2BfUSPJFiTW6Tfap4tm3hFj7nvYU3XIfwzAxwoIy6nsBoqVDt9iBDSXrvYQ==",
       "path": "google.apis.core/1.74.0",
       "hashPath": "google.apis.core.1.74.0.nupkg.sha512"
+    },
+    "Google.Apis.Drive.v3/1.74.0.4135": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-RmWmfrfASvaoOnSV0pMKvuYAk3SnONvSdcMk3RuL/e2o/aVWy8+V4LGjiZfMNZKpdIvhwpVh4scrhft/xpO92A==",
+      "path": "google.apis.drive.v3/1.74.0.4135",
+      "hashPath": "google.apis.drive.v3.1.74.0.4135.nupkg.sha512"
     },
     "Google.Apis.Gmail.v1/1.74.0.4134": {
       "type": "package",
@@ -507,6 +565,13 @@
       "sha512": "sha512-v0c8R97TwRYwNXlC8GyRXwYTCNufpDfUtj9la+wUrZFzVWkFJuNAltU+c0yI3zu0jl54k7en6u2WKgZgd57r2Q==",
       "path": "grpc.net.common/2.71.0",
       "hashPath": "grpc.net.common.2.71.0.nupkg.sha512"
+    },
+    "HtmlAgilityPack/1.12.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ljqvBabvFwKoLniuoQKO8b5bJfJweKLs4fUNS/V5dsvpo0A8MlJqxxn9XVmP2DaskbUXty6IYaWAi1SArGIMeQ==",
+      "path": "htmlagilitypack/1.12.4",
+      "hashPath": "htmlagilitypack.1.12.4.nupkg.sha512"
     },
     "Microsoft.AspNetCore.OpenApi/8.0.26": {
       "type": "package",
@@ -654,6 +719,13 @@
       "sha512": "sha512-DOZ8Z8CxHVWU8gSo4ZQ8sCAPIQb+agp56ISuMiu39WWZiV+reZwn9NM1tj4lRDfqLaOAinF6zTi0csmFBQes9Q==",
       "path": "system.numerics.tensors/10.0.6",
       "hashPath": "system.numerics.tensors.10.0.6.nupkg.sha512"
+    },
+    "System.ServiceModel.Syndication/10.0.8": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-xfzCPN0jCQQIS90uKla37E16/0EFxdhs+cOREumboSpSPA2smXyk7jgfFCOXxEAgmZzz5WkR7wckNAAVrSQtSg==",
+      "path": "system.servicemodel.syndication/10.0.8",
+      "hashPath": "system.servicemodel.syndication.10.0.8.nupkg.sha512"
     },
     "System.Text.Encodings.Web/10.0.6": {
       "type": "package",

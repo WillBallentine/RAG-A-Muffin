@@ -62,9 +62,21 @@
               "target": "Package",
               "version": "[1.74.0, )"
             },
+            "Google.Apis.Calendar.v3": {
+              "target": "Package",
+              "version": "[1.74.0.4073, )"
+            },
+            "Google.Apis.Drive.v3": {
+              "target": "Package",
+              "version": "[1.74.0.4135, )"
+            },
             "Google.Apis.Gmail.v1": {
               "target": "Package",
               "version": "[1.74.0.4134, )"
+            },
+            "HtmlAgilityPack": {
+              "target": "Package",
+              "version": "[1.12.4, )"
             },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
@@ -85,6 +97,10 @@
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.6.2, )"
+            },
+            "System.ServiceModel.Syndication": {
+              "target": "Package",
+              "version": "[10.0.8, )"
             },
             "UglyToad.PdfPig": {
               "target": "Package",
