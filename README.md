@@ -352,29 +352,41 @@ rag-a-muffin/
 
 ---
 
-## Local Development
+## Development
+
+All development runs through Docker Compose — there's no need to install .NET, Qdrant, or Ollama locally.
+
+### First build
 
 ```bash
-# Start dependencies
-docker run -d -p 6333:6333 -p 6334:6334 qdrant/qdrant
-# Install and start Ollama: https://ollama.com
-ollama pull nomic-embed-text
-ollama pull llama3
-
-# Run the app
-cd rag-a-muffin
-dotnet run
+docker compose up --build
 ```
 
-The app will be available at **http://localhost:5000** (or the port shown in the console).
+Drop `-d` to keep logs streaming to the terminal. The first run pulls Ollama models (`nomic-embed-text`, `llama3`) which takes a few minutes.
 
-Update `appsettings.Development.json` to point at local services:
+### Rebuild after code changes
 
-```json
-{
-  "Ollama": { "BaseUrl": "http://localhost:11434" },
-  "Qdrant": { "Host": "localhost", "Port": 6334 }
-}
+Only the `api` service needs rebuilding when you change C# or frontend files:
+
+```bash
+docker compose up --build api
+```
+
+Qdrant and Ollama continue running and don't need to restart.
+
+### Tail logs per service
+
+```bash
+docker compose logs -f api      # app logs
+docker compose logs -f ollama   # model loading / inference
+docker compose logs -f qdrant   # vector DB
+```
+
+### Stop everything
+
+```bash
+docker compose down             # stop containers, keep volumes
+docker compose down -v          # stop containers and delete all data
 ```
 
 ---

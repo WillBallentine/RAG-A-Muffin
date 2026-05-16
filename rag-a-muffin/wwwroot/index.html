@@ -1174,6 +1174,184 @@
 
   .btn-save-config:hover    { opacity: .85; }
   .btn-save-config:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── Status button ── */
+  .btn-status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+
+  .btn-status:hover { border-color: var(--accent); color: var(--text); }
+
+  /* ── Status panel ── */
+  .status-panel {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 400;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn .15s ease;
+  }
+
+  .status-panel.hidden { display: none; }
+
+  .status-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .status-panel-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .status-panel-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: color .15s, border-color .15s;
+  }
+
+  .status-panel-close:hover { color: var(--text); border-color: var(--text-muted); }
+
+  .status-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+    max-width: 700px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  /* ── Status rows ── */
+  .status-group-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 12px 0 4px;
+  }
+
+  .status-group-label:first-child { padding-top: 0; }
+
+  .status-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    transition: border-color .15s;
+  }
+
+  .status-row.active   { border-left-color: var(--accent); }
+  .status-row.inactive { border-left-color: var(--border); }
+  .status-row.warning  { border-left-color: #facc15; }
+
+  .status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .status-indicator.active  { background: var(--accent); box-shadow: 0 0 5px var(--accent); }
+  .status-indicator.inactive { background: var(--border); }
+  .status-indicator.warning  { background: #facc15; }
+
+  .status-row-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .status-row-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .status-row-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .status-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  .status-badge.active   { color: var(--accent); }
+  .status-badge.inactive { color: var(--text-muted); }
+  .status-badge.warning  { color: #facc15; }
+
+  .status-row-detail {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .status-action {
+    display: inline-block;
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity .15s;
+  }
+
+  .status-action:hover { opacity: .8; }
+
+  .status-loading {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 40px 0;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -1248,6 +1426,12 @@
         <span id="userPillEmail"></span>
         <button class="btn-signout" onclick="signOut()" title="Sign out">✕</button>
       </div>
+      <button class="btn-status" onclick="openStatus()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Status
+      </button>
       <button class="btn-sources" onclick="openSettings()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
@@ -1335,6 +1519,17 @@
       <button class="modal-close" onclick="closePreviewBtn()">✕</button>
     </div>
     <div class="modal-body" id="previewBody"></div>
+  </div>
+</div>
+
+<!-- Status panel -->
+<div class="status-panel hidden" id="statusPanel">
+  <div class="status-panel-header">
+    <div class="status-panel-title">Connector Status</div>
+    <button class="status-panel-close" onclick="closeStatus()">← back</button>
+  </div>
+  <div class="status-body" id="statusBody">
+    <div class="status-loading">Loading...</div>
   </div>
 </div>
 
@@ -1873,6 +2068,102 @@
     el.style.height = Math.min(el.scrollHeight, 160) + 'px';
   }
 
+  // ── Status panel ─────────────────────────────────────────
+  async function openStatus() {
+    document.getElementById('statusPanel').classList.remove('hidden');
+    document.getElementById('statusBody').innerHTML =
+      '<div class="status-loading">Loading...</div>';
+    try {
+      const res = await fetch(`${API_BASE}/status`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      renderStatusPanel(await res.json());
+    } catch (err) {
+      document.getElementById('statusBody').innerHTML =
+        `<div class="status-loading">Failed to load: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function closeStatus() {
+    document.getElementById('statusPanel').classList.add('hidden');
+  }
+
+  function renderStatusPanel(s) {
+    const google  = s.googleAuthorized;
+    const hasUser = s.user?.configured;
+
+    let googleDetail = google
+      ? `Signed in as ${escapeHtml(s.user.email)}`
+      : hasUser
+        ? 'Token missing — re-authorize to reconnect'
+        : 'Not set up';
+
+    let googleState = google ? 'active' : hasUser ? 'warning' : 'inactive';
+    let googleBadge = google ? 'Connected' : hasUser ? 'Needs auth' : 'Not connected';
+
+    const driveDetail = google
+      ? `Syncs up to ${s.drive.maxFiles} files` +
+        (s.drive.folderCount > 0 ? ` from ${s.drive.folderCount} configured folder(s)` : ' from your full Drive')
+      : 'Requires Google authorization';
+
+    const calDetail = google
+      ? `${s.calendar.daysBack}d back · ${s.calendar.daysAhead}d ahead · primary calendar`
+      : 'Requires Google authorization';
+
+    const syncNote = `Auto-syncs every ${s.syncInterval} minute${s.syncInterval !== 1 ? 's' : ''}`;
+
+    const reAuthAction = !google && hasUser
+      ? `<a class="status-action" href="${API_BASE}/authorize?userId=${encodeURIComponent(s.user?.email ?? '')}" target="_blank">Re-authorize Google</a>`
+      : '';
+
+    const rssState  = s.rssFeeds  > 0 ? 'active' : 'inactive';
+    const webState  = s.webUrls   > 0 ? 'active' : 'inactive';
+    const rssBadge  = s.rssFeeds  > 0 ? `${s.rssFeeds} feed${s.rssFeeds  !== 1 ? 's' : ''}` : 'Not configured';
+    const webBadge  = s.webUrls   > 0 ? `${s.webUrls} URL${s.webUrls    !== 1 ? 's' : ''}` : 'Not configured';
+
+    const openSourcesBtn = `<span class="status-action" onclick="closeStatus(); openSettings()">Open Sources ↗</span>`;
+
+    document.getElementById('statusBody').innerHTML = `
+      <div class="status-group-label">Google Account</div>
+      ${row(googleState, 'Google Account', googleBadge, googleDetail + (reAuthAction ? '<br>' + reAuthAction : ''))}
+
+      <div class="status-group-label">Google Services</div>
+      ${row(google ? 'active' : 'inactive', 'Gmail', google ? 'Active' : 'Not connected',
+          google ? `Inbox + sent mail · ${syncNote}` : 'Connect your Google account above')}
+      ${row(google ? 'active' : 'inactive', 'Google Drive', google ? 'Active' : 'Not connected',
+          driveDetail + (google ? `<br>${syncNote}` : ''))}
+      ${row(google ? 'active' : 'inactive', 'Google Calendar', google ? 'Active' : 'Not connected',
+          calDetail + (google ? `<br>${syncNote}` : ''))}
+
+      <div class="status-group-label">Configured Sources</div>
+      ${row(rssState, 'RSS / Atom Feeds', rssBadge,
+          s.rssFeeds > 0
+            ? `${s.rssFeeds} feed${s.rssFeeds !== 1 ? 's' : ''} · ${syncNote}`
+            : 'No feeds added yet<br>' + openSourcesBtn)}
+      ${row(webState, 'Web Scraper', webBadge,
+          s.webUrls > 0
+            ? `${s.webUrls} URL${s.webUrls !== 1 ? 's' : ''} · indexed once per URL`
+            : 'No URLs added yet<br>' + openSourcesBtn)}
+
+      <div class="status-group-label">Always Available</div>
+      ${row('active', 'File Upload', 'Available', 'PDF, DOCX, DOC, TXT, MD · use the Upload Doc button in the header')}
+      ${row('active', 'Watch Folder', 'Active', 'Drop files into <code style="font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:4px">./data/watch/</code> for automatic ingestion')}
+    `;
+  }
+
+  function row(state, name, badge, detail) {
+    return `
+      <div class="status-row ${state}">
+        <div class="status-indicator ${state}"></div>
+        <div class="status-row-content">
+          <div class="status-row-top">
+            <span class="status-row-name">${escapeHtml(name)}</span>
+            <span class="status-badge ${state}">${escapeHtml(badge)}</span>
+          </div>
+          <div class="status-row-detail">${detail}</div>
+        </div>
+      </div>`;
+  }
+
   // ── Sources / connector config ───────────────────────────
   let connectorConfig = { rssFeeds: [], webUrls: [] };
 
@@ -2014,6 +2305,7 @@
   // ── Init ─────────────────────────────────────────────────
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+      closeStatus();
       closeSettings();
       closeLogs();
       closePreviewBtn();

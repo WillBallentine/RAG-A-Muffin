@@ -150,6 +150,37 @@ app.MapPost("/setup", async (HttpRequest request, UserProfileService profile) =>
 
 app.MapGet("/logs", (InMemoryLogBuffer buffer) => Results.Ok(buffer.GetAll()));
 
+// ── System status endpoint ────────────────────────────────────────────────────
+
+app.MapGet("/status", async (
+    UserProfileService profile,
+    ConnectorConfigService connectorConfig,
+    IConfiguration config) =>
+{
+    var userConfigured = profile.IsConfigured;
+    var googleAuthorized = userConfigured &&
+        await GoogleAuth.HasStoredCredentialAsync(profile.UserId!);
+
+    return Results.Ok(new
+    {
+        user = new { configured = userConfigured, email = profile.UserId },
+        googleAuthorized,
+        rssFeeds     = connectorConfig.Current.RssFeeds.Count,
+        webUrls      = connectorConfig.Current.WebUrls.Count,
+        syncInterval = config.GetValue("Ingestion:IntervalMinutes", 60),
+        drive = new
+        {
+            folderCount = config.GetSection("Connectors:Drive:FolderIds").Get<string[]>()?.Length ?? 0,
+            maxFiles    = config.GetValue("Connectors:Drive:MaxFiles", 50)
+        },
+        calendar = new
+        {
+            daysBack  = config.GetValue("Connectors:Calendar:DaysBack",  30),
+            daysAhead = config.GetValue("Connectors:Calendar:DaysAhead", 7)
+        }
+    });
+});
+
 // ── Connector config endpoints ────────────────────────────────────────────────
 
 app.MapGet("/config/connectors",
