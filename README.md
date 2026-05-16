@@ -359,10 +359,11 @@ All development runs through Docker Compose — there's no need to install .NET,
 ### First build
 
 ```bash
-docker compose up --build
+docker compose up --build        # foreground — logs stream to terminal
+docker compose up --build -d     # background — detached
 ```
 
-Drop `-d` to keep logs streaming to the terminal. The first run pulls Ollama models (`nomic-embed-text`, `llama3`) which takes a few minutes.
+The first run pulls Ollama models (`nomic-embed-text`, `llama3`) which takes a few minutes.
 
 ### Rebuild after code changes
 
