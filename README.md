@@ -1,4 +1,15 @@
-# RAG-A-Muffin
+<div align="center">
+  <img src="assets/logo.svg" alt="RAG-A-Muffin" width="720" />
+  <br/><br/>
+
+  [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com)
+  [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com)
+  [![Ollama](https://img.shields.io/badge/Ollama-Local%20LLM-000000?style=flat-square)](https://ollama.com)
+  [![Qdrant](https://img.shields.io/badge/Qdrant-Vector%20DB-DC244C?style=flat-square)](https://qdrant.tech)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-4ade80?style=flat-square)](#)
+</div>
+
+---
 
 A local, privacy-first RAG (Retrieval-Augmented Generation) system that runs on a Raspberry Pi or any homelab device. Connect your Gmail, Google Drive, Google Calendar, RSS feeds, websites, and documents, then ask questions about your life in a streaming chat UI — with everything staying on your hardware.
 
