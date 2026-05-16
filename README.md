@@ -202,6 +202,83 @@ Click the **Sources** (gear) icon in the header to open the connector config pan
 
 ---
 
+## Examples
+
+### What the UI looks like
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│ 🧁 rag-a-muffin    ● local  [will@gmail.com ✕]                       │
+│                    [Status] [Sources] [Logs] [Upload Doc] [Sync Inbox]│
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  YOU                                                                 │
+│  ╔════════════════════════════════════════════╗                      │
+│  ║ What's on my calendar this week?           ║                      │
+│  ╚════════════════════════════════════════════╝                      │
+│                                                                      │
+│  MUFFIN                                                              │
+│  ┌────────────────────────────────────────────┐                      │
+│  │ You have three events this week:           │                      │
+│  │                                            │                      │
+│  │ • Monday 2pm — Dentist appointment         │                      │
+│  │ • Wednesday 10am — Team standup with       │                      │
+│  │   Sarah, James, and Kim                    │                      │
+│  │ • Friday 7pm — Dinner at The Capital       │                      │
+│  └────────────────────────────────────────────┘                      │
+│                                                                      │
+│  SOURCES                                                             │
+│  ┌─────────────────────┐  ┌─────────────────────┐                   │
+│  │ Dentist Appointment │  │ Team Standup        │                   │
+│  │ May 19, 2026        │  │ May 21, 2026        │                   │
+│  │ ↗ CALENDAR          │  │ ↗ CALENDAR          │                   │
+│  └─────────────────────┘  └─────────────────────┘                   │
+│                                                                      │
+├──────────────────────────────────────────────────────────────────────┤
+│ source  [All] [Email] [Docs] [Drive] [Calendar] [RSS] [Web]          │
+│ ┌──────────────────────────────────────────────────────────────────┐ │
+│ │ Ask about your docs, emails, anything...                      ↵  │ │
+│ └──────────────────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+### Example queries
+
+**Calendar**
+> What's on my calendar this week?
+
+*You have three events this week: a dentist appointment Monday at 2pm, a team standup Wednesday at 10am with Sarah, James, and Kim, and dinner Friday at 7pm.*
+
+---
+
+**Email**
+> Has anyone emailed me about the kitchen renovation quote?
+
+*Yes — on May 8th, Riverside Contracting sent you a quote for $14,200 covering cabinet replacement and tile work. They asked for a response by the 20th.*
+
+---
+
+**Google Drive**
+> Summarise my Q1 planning document.
+
+*Your Q1 plan (last edited March 3rd) outlines three priorities: launching the new onboarding flow, migrating the database to Postgres, and reducing support ticket volume by 20%. The owner is listed as you, with a review date of April 1st.*
+
+---
+
+**Mixed sources**
+> Have I discussed the house budget anywhere?
+
+*I found references in two places: a Gmail thread from April with your partner titled "House reno budget" mentioning a $40k cap, and a Google Doc called "2026 Finances" that includes a home improvement line item of $35,000.*
+
+---
+
+**RSS**
+> What's the latest in AI this week?
+
+*Based on your feeds, the main stories this week are Meta's release of Llama 4, a new benchmark showing o3 outperforming humans on ARC-AGI, and a Wired piece on the energy cost of large-scale inference.*
+
+---
+
 ## GPU Acceleration
 
 ### NVIDIA
