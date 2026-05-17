@@ -198,7 +198,18 @@ Use the chips above the input to scope results:
 
 ### Managing RSS feeds and web URLs
 
-Click the **Sources** (gear) icon in the header to open the connector config panel. Add or remove RSS feeds and web URLs without editing any config files. Changes take effect on the next sync cycle.
+Click the **Sources** icon in the header to open the connector config panel. Add or remove RSS feeds and web URLs without editing any config files. You can either click **+ Add** after typing a URL, or just type the URL and click **Save changes** — the pending value is auto-added before saving. Changes take effect on the next sync cycle.
+
+### Manual sync
+
+Click **Sync All** in the header to immediately run all connectors (Gmail, Drive, Calendar, RSS, web). Useful after adding a new source or when you want fresh data without waiting for the next scheduled sync.
+
+### Dev Tools
+
+Click the **Dev** (wrench) icon in the header to open the Dev Tools panel. From here you can:
+
+- **Restart** — exit and let Docker's `restart: unless-stopped` bring the container back up with the same image. Use this after changing `appsettings.json` or environment variables.
+- **Rebuild** — compile a new image from source and restart. Use this after changing C# or frontend code. The UI shows a reconnecting spinner and resumes automatically when the new container is ready.
 
 ---
 
@@ -209,7 +220,7 @@ Click the **Sources** (gear) icon in the header to open the connector config pan
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │ 🧁 rag-a-muffin    ● local  [will@gmail.com ✕]                       │
-│                    [Status] [Sources] [Logs] [Upload Doc] [Sync Inbox]│
+│              [Status] [Sources] [Logs] [Upload Doc] [Sync All] [Dev] │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                      │
 │  YOU                                                                 │
@@ -400,6 +411,9 @@ All persistent data lives in `./data/` on the host:
 | `GET` | `/config/connectors` | Get current RSS / web connector config |
 | `PUT` | `/config/connectors` | Save RSS / web connector config |
 | `GET` | `/logs` | Fetch recent application log entries |
+| `POST` | `/sync` | Immediately run all connectors (same as **Sync All** button) |
+| `POST` | `/admin/restart` | Exit the process; Docker restarts the container with the current image |
+| `POST` | `/admin/rebuild` | Build a new image from source, then restart |
 
 Swagger UI is available at **http://localhost:8000/swagger** in development mode.
 
@@ -463,6 +477,8 @@ docker compose up --build api
 
 Qdrant and Ollama continue running and don't need to restart.
 
+You can also trigger a rebuild from the browser via the **Dev → Rebuild** button — no terminal access required.
+
 ### Tail logs per service
 
 ```bash
@@ -491,7 +507,15 @@ docker compose logs -f ollama
 
 **Drive or Calendar not syncing** — these require scopes that weren't in the original Gmail-only authorization. Sign out in the UI and re-authorize to grant all three scopes at once.
 
-**Port conflicts** — check which process is using a port:
+**Port conflicts on startup** — if you have a stale stack from a previous run using a different project name, you may see `port is already allocated` errors. Stop and remove all old containers first:
+```bash
+docker compose down        # removes rag-a-muffin project containers
+docker ps -a               # find any lingering containers from old project names
+docker rm -f <name>        # remove them
+docker compose up -d
+```
+
+**Check which process is using a port:**
 ```bash
 # Linux / macOS
 lsof -i :8000
@@ -500,7 +524,7 @@ lsof -i :8000
 netstat -ano | findstr :8000
 ```
 
-**Force a full restart:**
+**Force a full reset (deletes all data):**
 ```bash
 docker compose down -v
 docker compose up --build -d
