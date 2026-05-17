@@ -6,9 +6,16 @@ namespace RagAMuffin.Services
     public class ChatSessionService
     {
         private const string DataDir = "/app/data/chats";
-        private static readonly JsonSerializerOptions _json = new() { WriteIndented = false };
+        private static readonly JsonSerializerOptions _json =
+            new(JsonSerializerDefaults.Web) { WriteIndented = false };
 
-        public ChatSessionService() => Directory.CreateDirectory(DataDir);
+        private readonly ILogger<ChatSessionService> _logger;
+
+        public ChatSessionService(ILogger<ChatSessionService> logger)
+        {
+            _logger = logger;
+            Directory.CreateDirectory(DataDir);
+        }
 
         public async Task<List<ChatSession>> ListAsync()
         {
@@ -17,10 +24,10 @@ namespace RagAMuffin.Services
             {
                 try
                 {
-                    var s = JsonSerializer.Deserialize<ChatSession>(await File.ReadAllTextAsync(file));
+                    var s = JsonSerializer.Deserialize<ChatSession>(await File.ReadAllTextAsync(file), _json);
                     if (s is not null) sessions.Add(s);
                 }
-                catch { /* corrupt file — skip */ }
+                catch (Exception ex) { _logger.LogWarning(ex, "Failed to deserialize session file {File}", file); }
             }
             return [.. sessions.OrderByDescending(s => s.UpdatedAt)];
         }
@@ -30,7 +37,7 @@ namespace RagAMuffin.Services
             var path = SafePath(id);
             return path is null || !File.Exists(path)
                 ? null
-                : JsonSerializer.Deserialize<ChatSession>(await File.ReadAllTextAsync(path));
+                : JsonSerializer.Deserialize<ChatSession>(await File.ReadAllTextAsync(path), _json);
         }
 
         public async Task<ChatSession> SaveAsync(ChatSession session)

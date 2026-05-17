@@ -33,6 +33,7 @@
     font-size: 15px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
 
   /* ── Layout ── */
@@ -43,6 +44,7 @@
     max-width: 860px;
     margin: 0 auto;
     padding: 0 16px;
+    overflow-x: hidden;
   }
 
   /* ── Header ── */
@@ -1927,28 +1929,164 @@
     --err:       #dc2626;
   }
 
+  /* ── TopK + date filter wrapper ── */
+  .filter-row-topk {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .filter-row-topk .filter-bar {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0;
+  }
+  .filter-row-topk .filter-label { flex-shrink: 0; }
+  .filter-row-topk .topk-select  { flex-shrink: 0; }
+
   /* ── Mobile layout ── */
   @media (max-width: 620px) {
+    /* App shell */
     .app { padding: 0 10px; }
-    header { padding: 12px 0 10px; gap: 8px; }
+
+    /* Header — icon-only buttons, two compact rows */
+    header { padding: 8px 0 7px; gap: 6px; }
     .header-actions { gap: 5px; flex-wrap: wrap; }
+
+    /* Hide text labels, keep icons */
+    .btn-label { display: none; }
     .btn-status, .btn-sources, .btn-logs, .btn-sync,
-    .btn-upload, .btn-history, .btn-dev, .btn-index {
-      padding: 6px 8px;
+    .btn-upload, .btn-history, .btn-dev {
+      padding: 7px 8px;
       font-size: 11px;
-      gap: 4px;
+      gap: 0;
     }
+    .btn-index {
+      padding: 6px 7px;
+      font-size: 11px;
+      gap: 2px;          /* keep gap so badge sits next to icon */
+    }
+    .btn-theme { width: 32px; height: 32px; }
+
+    /* Shrink user pill — hide email, just show dot + signout */
+    #userPillEmail { display: none; }
+    .user-pill { padding: 5px 6px 5px 7px; gap: 4px; }
+
+    /* Filter bar — horizontal scroll */
     .filter-bar {
       overflow-x: auto;
       flex-wrap: nowrap;
       padding-bottom: 2px;
       scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
     }
     .filter-bar::-webkit-scrollbar { display: none; }
-    .chat { gap: 14px; padding: 16px 0; }
-    .msg-bubble { padding: 12px 14px; font-size: 14px; }
-    .input-area { padding: 10px 0 14px; }
+    .chip      { flex-shrink: 0; padding: 5px 11px; }
+    .date-chip { flex-shrink: 0; padding: 5px 9px; }
+
+    /* TopK select — larger tap target */
+    .topk-select { padding: 5px 7px; }
+
+    /* Chat */
+    .chat { gap: 12px; padding: 12px 0; }
+    .msg-bubble { padding: 11px 13px; font-size: 14px; }
+    .msg-label  { font-size: 10px; }
+
+    /* Copy button — always visible on touch (no hover) */
+    .btn-copy-msg { opacity: 1; }
+
+    /* Input */
+    .input-area { padding: 6px 0 10px; }
     .input-hint { font-size: 10px; }
+    .hint-keys  { display: none; }           /* hide keyboard shortcut hints */
+    .input-row textarea { font-size: 15px; } /* prevents iOS auto-zoom */
+
+    /* Toast — move to top center so it never overlaps the keyboard */
+    .toast {
+      bottom: auto;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      width: auto;
+      justify-content: center;
+      transform: translateY(-80px); /* slide in from above */
+    }
+
+    /* Citation cards */
+    .citations { gap: 6px; }
+    .citation  { padding: 9px 11px; }
+
+    /* Panel headers */
+    .log-panel-header, .settings-panel-header, .history-panel-header,
+    .status-panel-header, .dev-panel-header, .index-panel-header {
+      padding: 12px 14px;
+    }
+
+    /* Log panel — 3-column grid (drop category column) */
+    .log-entries { font-size: 11px; padding: 8px 0; }
+    .log-entry {
+      grid-template-columns: 66px 36px 1fr;  /* 24h time = 8 chars fits in 66px */
+      padding: 5px 12px;
+      gap: 0 8px;
+    }
+    .log-cat  { display: none; }
+    .log-time { overflow: hidden; }
+
+    /* Settings panel */
+    .settings-body   { padding: 14px 12px; gap: 20px; }
+    .settings-footer { padding: 10px 12px; }
+
+    /* Add-entry row — stack vertically on mobile */
+    .add-entry-row { flex-direction: column; align-items: stretch; gap: 8px; }
+    .add-entry-input,
+    .add-entry-label-input {
+      width: 100%;
+      min-width: unset;
+      flex: unset;
+      font-size: 14px;
+    }
+    .btn-add-entry { align-self: flex-start; }
+
+    /* Feed delete — bigger touch target */
+    .feed-delete { padding: 8px 12px; font-size: 16px; margin: -6px; }
+
+    /* Bigger toggle rows for touch */
+    .settings-toggle-item { min-height: 44px; }
+
+    /* History panel */
+    .history-body { padding: 12px 12px 20px; }
+    .history-session-row { padding: 13px 12px; }
+    /* Bigger delete button touch target */
+    .history-session-del {
+      padding: 10px 12px;
+      margin: -6px -6px -6px 0;
+      font-size: 16px;
+    }
+    .btn-new-chat { padding: 7px 10px; font-size: 11px; }
+
+    /* Status panel */
+    .status-body { padding: 12px 14px; }
+    .status-action { padding: 6px 12px; font-size: 11px; }
+
+    /* Dev panel */
+    .dev-body { padding: 12px 14px; }
+
+    /* Index panel */
+    .index-panel { padding: 0 10px; }
+    .index-filter-row {
+      flex-direction: column;
+      gap: 6px;
+    }
+    .index-search, .index-type-select { width: 100%; }
+    /* Bigger touch target for document delete */
+    .index-doc-del { padding: 7px 12px; }
+
+    /* Preview modal — reduce padding */
+    .modal-header { padding: 13px 14px; }
+    .modal-body   { padding: 12px 14px; font-size: 13px; }
+
+    /* Login card — reduce side padding on narrow screens */
+    .login-card { padding: 28px 20px; }
   }
 
   /* ── Dev tools button ── */
@@ -2184,45 +2322,45 @@
         <span id="userPillEmail"></span>
         <button class="btn-signout" onclick="signOut()" title="Sign out">✕</button>
       </div>
-      <button class="btn-status" onclick="openStatus()">
+      <button class="btn-status" onclick="openStatus()" aria-label="Connector status">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
         </svg>
-        Status
+        <span class="btn-label">Status</span>
       </button>
-      <button class="btn-sources" onclick="openSettings()">
+      <button class="btn-sources" onclick="openSettings()" aria-label="Sources">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
-        Sources
+        <span class="btn-label">Sources</span>
       </button>
-      <button class="btn-logs" onclick="openLogs()">
+      <button class="btn-logs" onclick="openLogs()" aria-label="Logs">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
           <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
         </svg>
-        Logs
+        <span class="btn-label">Logs</span>
       </button>
-      <button class="btn-index" onclick="openIndex()" title="Document index">
+      <button class="btn-index" onclick="openIndex()" aria-label="Document index">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
           <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
         </svg>
-        Index
+        <span class="btn-label">Index</span>
         <span class="index-count-badge" id="indexBadge">—</span>
       </button>
-      <button class="btn-history" onclick="openHistory()">
+      <button class="btn-history" onclick="openHistory()" aria-label="Chat history">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
         </svg>
-        History
+        <span class="btn-label">History</span>
       </button>
-      <button class="btn-dev" onclick="openDev()">
+      <button class="btn-dev" onclick="openDev()" aria-label="Dev tools">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
         </svg>
-        Dev
+        <span class="btn-label">Dev</span>
       </button>
       <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark mode">
         <!-- Sun: shown in dark mode -->
@@ -2239,20 +2377,20 @@
         </svg>
       </button>
       <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt,.md" style="display:none" onchange="uploadFile(this)" multiple />
-      <button class="btn-upload" id="uploadBtn" onclick="document.getElementById('fileInput').click()">
+      <button class="btn-upload" id="uploadBtn" onclick="document.getElementById('fileInput').click()" aria-label="Upload document">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
         </svg>
-        Upload Doc
+        <span class="btn-label">Upload Doc</span>
       </button>
-      <button class="btn-sync" id="syncBtn" onclick="syncAll()">
+      <button class="btn-sync" id="syncBtn" onclick="syncAll()" aria-label="Sync all">
         <svg id="syncIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
           <path d="M3 3v5h5"/>
           <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
           <path d="M16 21h5v-5"/>
         </svg>
-        Sync All
+        <span class="btn-label">Sync All</span>
       </button>
     </div>
   </header>
@@ -2277,15 +2415,18 @@
       <span class="chip" data-filter="calendar" onclick="setFilter('calendar')">Calendar</span>
       <span class="chip" data-filter="rss" onclick="setFilter('rss')">RSS</span>
       <span class="chip" data-filter="web" onclick="setFilter('web')">Web</span>
+      <span class="chip" data-filter="local" onclick="setFilter('local')">Local</span>
     </div>
-    <div class="filter-bar" style="margin-bottom:8px">
-      <span class="filter-label">date</span>
-      <span class="date-chip active" data-date="all"   onclick="setDateFilter('all')">All time</span>
-      <span class="date-chip" data-date="7d"    onclick="setDateFilter('7d')">7 days</span>
-      <span class="date-chip" data-date="30d"   onclick="setDateFilter('30d')">30 days</span>
-      <span class="date-chip" data-date="90d"   onclick="setDateFilter('90d')">3 months</span>
-      <span class="date-chip" data-date="1y"    onclick="setDateFilter('1y')">1 year</span>
-      <span class="filter-label" style="margin-left:auto">top</span>
+    <div class="filter-row-topk">
+      <div class="filter-bar">
+        <span class="filter-label">date</span>
+        <span class="date-chip active" data-date="all"   onclick="setDateFilter('all')">All time</span>
+        <span class="date-chip" data-date="7d"    onclick="setDateFilter('7d')">7 days</span>
+        <span class="date-chip" data-date="30d"   onclick="setDateFilter('30d')">30 days</span>
+        <span class="date-chip" data-date="90d"   onclick="setDateFilter('90d')">3 mo</span>
+        <span class="date-chip" data-date="1y"    onclick="setDateFilter('1y')">1 year</span>
+      </div>
+      <span class="filter-label">top</span>
       <select class="topk-select" id="topkSelect" onchange="activeTopK=+this.value">
         <option value="4">4</option>
         <option value="8" selected>8</option>
@@ -2308,7 +2449,7 @@
         </svg>
       </button>
     </div>
-    <div class="input-hint">↵ send &nbsp;·&nbsp; shift+↵ newline &nbsp;·&nbsp; <button class="btn-new-chat-inline" onclick="newChat()">new chat</button></div>
+    <div class="input-hint"><span class="hint-keys">↵ send &nbsp;·&nbsp; shift+↵ newline &nbsp;·&nbsp; </span><button class="btn-new-chat-inline" onclick="newChat()">new chat</button></div>
   </div>
 </div>
 
@@ -2378,6 +2519,27 @@
                placeholder="Label (optional)"
                onkeydown="if(event.key==='Enter') addEntry('web')" />
         <button class="btn-add-entry" onclick="addEntry('web')">+ Add</button>
+      </div>
+    </div>
+
+    <!-- Gmail label filter -->
+    <div class="settings-section">
+      <div class="settings-section-title">Gmail Label Filter</div>
+      <div class="settings-section-desc">Comma-separated label IDs to sync (e.g. INBOX, SENT, STARRED). Defaults to INBOX and SENT when blank.</div>
+      <input class="add-entry-input" id="gmailLabelsInput" type="text"
+             placeholder="INBOX, SENT" style="width:100%;margin-top:6px" />
+    </div>
+
+    <!-- Local directories -->
+    <div class="settings-section">
+      <div class="settings-section-title">Local Directories</div>
+      <div class="settings-section-desc">Container paths to scan and index on each sync. Directories must be bind-mounted into the container.</div>
+      <div class="feed-list" id="localDirList"></div>
+      <div class="add-entry-row">
+        <input class="add-entry-input" id="localDirInput" type="text"
+               placeholder="/app/data/docs"
+               onkeydown="if(event.key==='Enter') addEntry('local')" />
+        <button class="btn-add-entry" onclick="addEntry('local')">+ Add</button>
       </div>
     </div>
 
@@ -2498,6 +2660,7 @@
       <option value="web">Web</option>
       <option value="upload">Upload</option>
       <option value="watch">Watch</option>
+      <option value="local">Local</option>
     </select>
   </div>
   <div class="index-list" id="indexList">
@@ -2576,6 +2739,7 @@
     if (activeFilter === 'calendar') return ['calendar'];
     if (activeFilter === 'rss')      return ['rss'];
     if (activeFilter === 'web')      return ['web'];
+    if (activeFilter === 'local')    return ['local'];
     return null; // all sources
   }
 
@@ -3089,6 +3253,28 @@
     document.getElementById('statusPanel').classList.add('hidden');
   }
 
+  let _reAuthPoller = null;
+  function reAuthGoogle(email) {
+    window.open(`${API_BASE}/authorize?userId=${encodeURIComponent(email)}`, '_blank');
+    // Poll /status until googleAuthorized flips to true, then re-render
+    clearInterval(_reAuthPoller);
+    let attempts = 0;
+    _reAuthPoller = setInterval(async () => {
+      attempts++;
+      if (attempts > 40) { clearInterval(_reAuthPoller); _reAuthPoller = null; return; } // 2-min timeout
+      try {
+        const res = await fetch(`${API_BASE}/status`);
+        if (!res.ok) return;
+        const s = await res.json();
+        if (s.googleAuthorized) {
+          clearInterval(_reAuthPoller); _reAuthPoller = null;
+          renderStatusPanel(s);
+          showToast('Google account connected');
+        }
+      } catch { /* server may be busy */ }
+    }, 3000);
+  }
+
   function renderStatusPanel(s) {
     const google  = s.googleAuthorized;
     const hasUser = s.user?.configured;
@@ -3114,7 +3300,7 @@
     const syncNote = `Auto-syncs every ${s.syncInterval} minute${s.syncInterval !== 1 ? 's' : ''}`;
 
     const reAuthAction = !google && hasUser
-      ? `<a class="status-action" href="${API_BASE}/authorize?userId=${encodeURIComponent(s.user?.email ?? '')}" target="_blank">Re-authorize Google</a>`
+      ? `<span class="status-action" onclick="reAuthGoogle(${JSON.stringify(s.user?.email ?? '')})">Re-authorize Google</span>`
       : '';
 
     const rssState  = s.rssFeeds  > 0 ? 'active' : 'inactive';
@@ -3167,10 +3353,10 @@
   }
 
   // ── Sources / connector config ───────────────────────────
-  const ALL_CONNECTORS = ['gmail', 'drive', 'calendar', 'rss', 'web'];
-  const CONNECTOR_LABELS = { gmail: 'Gmail', drive: 'Google Drive', calendar: 'Google Calendar', rss: 'RSS Feeds', web: 'Web Scraper' };
+  const ALL_CONNECTORS = ['gmail', 'drive', 'calendar', 'rss', 'web', 'local'];
+  const CONNECTOR_LABELS = { gmail: 'Gmail', drive: 'Google Drive', calendar: 'Google Calendar', rss: 'RSS Feeds', web: 'Web Scraper', local: 'Local Directory' };
 
-  let connectorConfig  = { rssFeeds: [], webUrls: [], enabledConnectors: [...ALL_CONNECTORS], syncIntervalMinutes: 0 };
+  let connectorConfig  = { rssFeeds: [], webUrls: [], localDirectories: [], gmailLabels: ['INBOX', 'SENT'], enabledConnectors: [...ALL_CONNECTORS], syncIntervalMinutes: 0 };
   let availableModels  = [];
   let currentLlmModel  = 'llama3.2';
 
@@ -3214,6 +3400,24 @@
   function renderConnectorConfig() {
     renderFeedList('rssFeedList', connectorConfig.rssFeeds, 'rss');
     renderFeedList('webUrlList',  connectorConfig.webUrls,  'web');
+    renderLocalDirList();
+    const labels = connectorConfig.gmailLabels ?? ['INBOX', 'SENT'];
+    document.getElementById('gmailLabelsInput').value = labels.join(', ');
+  }
+
+  function renderLocalDirList() {
+    const container = document.getElementById('localDirList');
+    const dirs = connectorConfig.localDirectories ?? [];
+    if (!dirs.length) {
+      container.innerHTML = '<div class="feed-empty">No directories configured.</div>';
+      return;
+    }
+    container.innerHTML = dirs.map((d, i) =>
+      `<div class="feed-entry">
+        <div class="feed-entry-info"><span class="feed-url">${escapeHtml(d)}</span></div>
+        <button class="feed-delete" title="Remove" onclick="deleteEntry('local', ${i})">✕</button>
+      </div>`
+    ).join('');
   }
 
   function renderConnectorToggles() {
@@ -3265,12 +3469,24 @@
   }
 
   function deleteEntry(type, index) {
-    if (type === 'rss') connectorConfig.rssFeeds.splice(index, 1);
-    else                connectorConfig.webUrls.splice(index, 1);
+    if (type === 'rss')        connectorConfig.rssFeeds.splice(index, 1);
+    else if (type === 'web')   connectorConfig.webUrls.splice(index, 1);
+    else if (type === 'local') connectorConfig.localDirectories.splice(index, 1);
     renderConnectorConfig();
   }
 
   function addEntry(type) {
+    if (type === 'local') {
+      const el   = document.getElementById('localDirInput');
+      const path = el.value.trim();
+      if (!path) { el.focus(); return; }
+      connectorConfig.localDirectories = [...(connectorConfig.localDirectories ?? []), path];
+      el.value = '';
+      el.focus();
+      renderLocalDirList();
+      return;
+    }
+
     const urlInputId   = type === 'rss' ? 'rssUrlInput'   : 'webUrlInput';
     const labelInputId = type === 'rss' ? 'rssLabelInput' : 'webLabelInput';
     const urlEl   = document.getElementById(urlInputId);
@@ -3291,12 +3507,21 @@
 
   async function saveConnectorConfig() {
     // Flush any URL typed in the input fields but not yet added to the list
-    if (document.getElementById('rssUrlInput').value.trim()) addEntry('rss');
-    if (document.getElementById('webUrlInput').value.trim()) addEntry('web');
+    if (document.getElementById('rssUrlInput').value.trim())   addEntry('rss');
+    if (document.getElementById('webUrlInput').value.trim())   addEntry('web');
+    if (document.getElementById('localDirInput').value.trim()) addEntry('local');
 
-    const interval   = parseInt(document.getElementById('syncIntervalInput').value, 10) || 0;
-    const llmModel   = document.getElementById('llmModelSelect').value || currentLlmModel;
-    const configToSave = { ...connectorConfig, syncIntervalMinutes: interval };
+    const interval = parseInt(document.getElementById('syncIntervalInput').value, 10) || 0;
+    const llmModel = document.getElementById('llmModelSelect').value || currentLlmModel;
+
+    const gmailLabelsRaw = document.getElementById('gmailLabelsInput').value;
+    const gmailLabels = gmailLabelsRaw.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+
+    const configToSave = {
+      ...connectorConfig,
+      syncIntervalMinutes: interval,
+      gmailLabels: gmailLabels.length ? gmailLabels : ['INBOX', 'SENT']
+    };
 
     const btn = document.getElementById('saveConfigBtn');
     btn.disabled    = true;
@@ -3329,9 +3554,12 @@
   }
 
   // ── Log viewer ───────────────────────────────────────────
-  let logPollTimer = null;
+  let logPollTimer  = null;
+  let logKnownCount = 0;
 
   async function openLogs() {
+    logKnownCount = 0;                                    // reset so re-open shows all entries fresh
+    document.getElementById('logEntries').innerHTML = ''; // clear stale display
     document.getElementById('logPanel').classList.remove('hidden');
     await refreshLogs();
     logPollTimer = setInterval(refreshLogs, 2000);
@@ -3353,20 +3581,21 @@
   }
 
   function renderLogs(entries) {
+    if (!entries || entries.length === 0) return;
     const container = document.getElementById('logEntries');
-    const empty = document.getElementById('logEmpty');
+    const empty     = document.getElementById('logEmpty');
 
-    if (!entries || entries.length === 0) {
-      if (empty) empty.style.display = '';
-      return;
-    }
+    if (entries.length <= logKnownCount) return; // nothing new
+
     if (empty) empty.style.display = 'none';
 
-    // Render newest first
-    const reversed = [...entries].reverse();
-    container.innerHTML = reversed.map(e => {
+    // Prepend only the new entries (newest-first at top)
+    const newEntries = entries.slice(logKnownCount).reverse();
+    logKnownCount = entries.length;
+
+    const html = newEntries.map(e => {
       const t = new Date(e.at);
-      const time = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const time = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
       const levelShort = e.level === 'Information' ? 'INFO'
                        : e.level === 'Warning'     ? 'WARN'
                        : e.level;
@@ -3377,6 +3606,7 @@
         <span class="log-msg">${escapeHtml(e.message)}</span>
       </div>`;
     }).join('');
+    container.insertAdjacentHTML('afterbegin', html);
   }
 
   // ── Dev tools ────────────────────────────────────────────
@@ -3618,21 +3848,27 @@
         citationsJson: m.citations ? JSON.stringify(m.citations) : null
       }))
     };
-    await fetch(`${API_BASE}/chats`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(session)
-    }).catch(() => {});
+    try {
+      const res = await fetch(`${API_BASE}/chats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(session)
+      });
+      if (!res.ok) showToast('⚠ Failed to save session', true);
+    } catch {
+      showToast('⚠ Failed to save session — server unreachable', true);
+    }
   }
 
   async function restoreSession(id) {
     try {
       const res = await fetch(`${API_BASE}/chats/${id}`);
-      if (!res.ok) { localStorage.removeItem('ram_sessionId'); return; }
+      if (res.status === 404) { localStorage.removeItem('ram_sessionId'); return; }
+      if (!res.ok) return; // server error — keep the ID, try again next load
       const session = await res.json();
       if (!session?.messages?.length) return;
       applySession(session, false);
-    } catch { /* silent — session restore is best-effort */ }
+    } catch { /* network error — keep ID, try again next load */ }
   }
 
   function applySession(session, showLabel = true) {

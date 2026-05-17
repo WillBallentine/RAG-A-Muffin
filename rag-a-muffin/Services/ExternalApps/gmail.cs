@@ -33,5 +33,22 @@ namespace RagAMuffin.Services.ExternalApps
 
             return messages;
         }
+
+        public static async Task<List<Message>> FetchByLabelsAsync(
+            GmailService service, IList<string> labels, int maxResults = 100)
+        {
+            var seen     = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var messages = new List<Message>();
+
+            foreach (var label in labels)
+            {
+                var batch = await FetchAsync(service, label, maxResults);
+                foreach (var msg in batch)
+                    if (seen.Add(msg.Id))
+                        messages.Add(msg);
+            }
+
+            return messages;
+        }
     }
 }

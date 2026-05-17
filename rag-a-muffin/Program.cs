@@ -65,6 +65,7 @@ builder.Services.AddScoped<IConnector, RssConnector>();
 builder.Services.AddScoped<IConnector, WebConnector>();
 builder.Services.AddScoped<IConnector, GoogleDriveConnector>();
 builder.Services.AddScoped<IConnector, GoogleCalendarConnector>();
+builder.Services.AddScoped<IConnector, LocalDirectoryConnector>();
 
 // Document extractors — each handles a specific file extension
 builder.Services.AddScoped<IDocumentExtractor, PdfExtractor>();
@@ -437,6 +438,9 @@ app.MapPost("/admin/rebuild", async ctx =>
         psi.ArgumentList.Add("--detach");
         psi.ArgumentList.Add("-v"); psi.ArgumentList.Add("/var/run/docker.sock:/var/run/docker.sock");
         psi.ArgumentList.Add("-v"); psi.ArgumentList.Add($"{hostProjectDir}:/workspace");
+        // Pass the real host path so docker-compose picks it up via ${HOST_PROJECT_DIR:-${PWD}}
+        // instead of evaluating ${PWD} inside the helper container (which would be /app).
+        psi.ArgumentList.Add("-e"); psi.ArgumentList.Add($"HOST_PROJECT_DIR={hostProjectDir}");
         psi.ArgumentList.Add("--entrypoint"); psi.ArgumentList.Add("/bin/sh");
         psi.ArgumentList.Add("rag-a-muffin-api");
         psi.ArgumentList.Add("-c");

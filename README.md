@@ -17,7 +17,7 @@ A local, privacy-first RAG (Retrieval-Augmented Generation) system that runs on 
 
 - **100% private** — your data never leaves your device. No cloud uploads, no third-party APIs processing your personal information.
 - **Local AI** — uses [Ollama](https://ollama.com) for on-device LLM inference and embeddings. Models run entirely locally.
-- **Multi-source** — Gmail, Drive, Calendar, RSS feeds, web scraping, file uploads, and a watch folder all feed into one searchable index.
+- **Multi-source** — Gmail, Drive, Calendar, RSS feeds, web scraping, local directories, file uploads, and a watch folder all feed into one searchable index.
 - **Homelab-friendly** — designed to run on Raspberry Pi and other resource-constrained devices. GPU acceleration available for NVIDIA and AMD cards.
 
 ---
@@ -58,6 +58,24 @@ Ollama pulls `nomic-embed-text` and `llama3` automatically on first boot. This t
 Navigate to **http://localhost:8000**.
 
 On first boot you'll see a setup screen — enter your Gmail address and click **Connect Gmail** to authorize. Your credentials are stored locally in `./data/tokens/` and never leave your machine.
+
+### 4. Access from any device on your network
+
+Because RAG-A-Muffin runs as a Docker service bound to port `8000`, any device on the same local network can reach it — phone, tablet, second laptop — without any extra configuration.
+
+Find your host machine's local IP:
+
+```bash
+# Linux / macOS
+ip route get 1 | awk '{print $7; exit}'
+
+# Windows
+ipconfig | findstr "IPv4"
+```
+
+Then open **http://\<host-ip\>:8000** on any device connected to the same Wi-Fi or LAN.
+
+> If your host machine has a firewall, make sure port `8000` is allowed for inbound connections from your local network.
 
 ---
 
@@ -109,7 +127,11 @@ All sources funnel into the same vector store. Use the **source filter chips** i
 
 ### Gmail
 
-Automatically syncs your inbox and sent mail on a configurable schedule (default: every 60 minutes). Email threads are deduplicated, quoted reply text is stripped, and signatures are removed before indexing.
+Automatically syncs email on a configurable schedule (default: every 60 minutes). Email threads are deduplicated, quoted reply text is stripped, and signatures are removed before indexing.
+
+**Label filter** — configure which Gmail label IDs to sync from the **Sources** panel (e.g. `INBOX`, `SENT`, `STARRED`). Defaults to `INBOX` and `SENT`. Messages that appear in multiple labels are fetched once.
+
+**Attachment indexing** — PDF and DOCX attachments are automatically downloaded and indexed alongside the email. The attachment is treated as a separate document linked to the parent message.
 
 ### Google Drive
 
@@ -163,6 +185,19 @@ Scrape static pages and index their text content. Configure URLs through the **S
 
 Pages are indexed once per URL. To re-index a changed page, remove the entry and re-add it (the URL-based document ID will be treated as new).
 
+### Local Directory
+
+Index any directory bind-mounted into the container. Configure paths through the **Sources** panel — add the container-side path (e.g. `/app/data/docs`). On each sync cycle, all PDF, DOCX, and TXT files in the directory (and subdirectories) are indexed. Documents are deduplicated by file path, so only new or changed files create new index entries.
+
+Example `compose.yml` bind mount:
+
+```yaml
+volumes:
+  - ./my-notes:/app/data/docs:ro
+```
+
+Then add `/app/data/docs` in the **Local Directories** section of the Sources panel.
+
 ### File Upload
 
 Click **Upload Doc** in the header to upload files directly from the browser. Supported formats: **PDF, DOCX, DOC, TXT, MD**. Files are deduplicated by content hash — uploading the same file twice is a no-op.
@@ -195,6 +230,7 @@ Use the chips above the input to scope results:
 | Calendar | Google Calendar |
 | RSS | RSS / Atom feeds |
 | Web | Scraped web pages |
+| Local | Local directory files |
 
 ### Date filter
 
@@ -457,7 +493,7 @@ All persistent data lives in `./data/` on the host:
 | `./data/tokens/` | Google OAuth refresh tokens |
 | `./data/uploads/` | Uploaded files |
 | `./data/watch/` | Watch folder (drop files here for auto-ingestion) |
-| `./data/connectors.json` | RSS feeds, web URLs, connector toggles, sync interval |
+| `./data/connectors.json` | RSS feeds, web URLs, local directories, Gmail label filter, connector toggles, sync interval |
 | `./data/chats/` | Chat sessions (one JSON file per session) |
 | `./data/settings.json` | App settings: active LLM model |
 | `qdrant_data` (Docker volume) | Vector embeddings |
@@ -520,7 +556,8 @@ rag-a-muffin/
 ├── Services/
 │   ├── Interfaces/            # IConnector, IVectorStore, IRagQueryService, …
 │   ├── Connectors/            # GmailConnector, GoogleDriveConnector,
-│   │                          # GoogleCalendarConnector, RssConnector, WebConnector
+│   │                          # GoogleCalendarConnector, RssConnector,
+│   │                          # WebConnector, LocalDirectoryConnector
 │   ├── Extractors/            # PdfExtractor, DocxExtractor, PlainTextExtractor
 │   ├── Logging/               # InMemoryLogBuffer + ILoggerProvider
 │   ├── ChatSessionService.cs      # Save/load chat sessions from ./data/chats/

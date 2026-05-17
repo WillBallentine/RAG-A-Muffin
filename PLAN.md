@@ -84,13 +84,13 @@ Models are currently hardcoded. Users have different hardware and preferences.
 
 ---
 
-### Phase 8 — Additional Connectors
+### Phase 8 — Additional Connectors ✓
 
-- [ ] **Gmail attachment indexing** — when an email has attachments, download and index them (PDF, DOCX). Currently flagged but skipped.
-- [ ] **Gmail label filter** — only sync emails with specific labels (e.g. `STARRED`, `INBOX`, custom labels) rather than all mail.
-- [ ] **Obsidian vault** — watch a local Obsidian vault directory; index markdown notes with frontmatter metadata.
-- [ ] **Notion** — sync pages from a Notion workspace via the Notion API.
-- [ ] **Local directory connector** — index an arbitrary host path (bind-mounted into the container), useful for code docs, wikis, etc.
+- [x] **Gmail attachment indexing** — when an email has attachments, download and index them (PDF, DOCX) via `Users.Messages.Attachments.Get`; stable document ID from `SHA256("gmail-attachment:{messageId}/{filename}")`.
+- [x] **Gmail label filter** — configurable label list (e.g. `INBOX`, `SENT`, `STARRED`) stored in `connectors.json`; `FetchByLabelsAsync` deduplicates by message ID across label calls.
+- [ ] **Obsidian vault** — watch a local Obsidian vault directory; index markdown notes with frontmatter metadata. *(skipped)*
+- [ ] **Notion** — sync pages from a Notion workspace via the Notion API. *(skipped)*
+- [x] **Local directory connector** — index an arbitrary host path (bind-mounted into the container); `LocalDirectoryConnector` scans recursively, uses existing PDF/DOCX/TXT extractors, deduplicates by path hash.
 
 ---
 

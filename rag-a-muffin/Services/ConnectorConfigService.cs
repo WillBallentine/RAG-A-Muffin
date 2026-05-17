@@ -77,9 +77,13 @@ namespace RagAMuffin.Services
         public List<FeedEntry> RssFeeds { get; set; } = [];
         public List<FeedEntry> WebUrls  { get; set; } = [];
         // Which connector source types are active. All enabled when list is empty or null.
-        public List<string> EnabledConnectors { get; set; } = ["gmail", "drive", "calendar", "rss", "web"];
+        public List<string> EnabledConnectors { get; set; } = ["gmail", "drive", "calendar", "rss", "web", "local"];
         // How often the background sync runs (minutes). 0 = use appsettings default.
         public int SyncIntervalMinutes { get; set; } = 0;
+        // Gmail label IDs to sync. Defaults to INBOX + SENT when empty.
+        public List<string> GmailLabels { get; set; } = ["INBOX", "SENT"];
+        // Container paths to scan and index on each sync cycle.
+        public List<string> LocalDirectories { get; set; } = [];
     }
 
     public class FeedEntry

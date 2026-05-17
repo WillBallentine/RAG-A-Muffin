@@ -38,7 +38,7 @@ services:
     environment:
       - DOTNET_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8000
-      - HOST_PROJECT_DIR=${PWD}
+      - HOST_PROJECT_DIR=${HOST_PROJECT_DIR:-${PWD}}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  # lets the app trigger restart/rebuild
       - .:/workspace:ro                             # build context for rebuild
