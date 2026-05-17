@@ -46,8 +46,10 @@ namespace RagAMuffin.Qdrant
                 PayloadSchemaType.Text, cancellationToken: default);
             await _client.CreatePayloadIndexAsync(CollectionName, "sourceType",
                 PayloadSchemaType.Keyword, cancellationToken: default);
+            await _client.CreatePayloadIndexAsync(CollectionName, "documentId",
+                PayloadSchemaType.Keyword, cancellationToken: default);
 
-            _logger.LogInformation("Payload indexes ensured on 'author', 'recipient', 'sourceType'");
+            _logger.LogInformation("Payload indexes ensured on 'author', 'recipient', 'sourceType', 'documentId'");
         }
     }
 }

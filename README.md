@@ -204,6 +204,18 @@ Click the **Sources** icon in the header to open the connector config panel. Add
 
 Click **Sync All** in the header to immediately run all connectors (Gmail, Drive, Calendar, RSS, web). Useful after adding a new source or when you want fresh data without waiting for the next scheduled sync.
 
+### Index browser
+
+Click the **Index** (database) icon in the header to open the document index panel. The badge on the button shows the total number of indexed documents at a glance, and turns amber when the index is empty.
+
+Inside the panel:
+
+- **Stats bar** — shows a chip per source type with its document count (gmail, drive, rss, etc.)
+- **Search and filter** — type to filter by title, or pick a source type from the dropdown to narrow the list
+- **Document list** — every indexed document with its source badge, title, author, date, and chunk count
+- **Delete a document** — click the trash icon on any row to remove that document and all its chunks from Qdrant
+- **Delete all by type** — click the × on a stat chip to bulk-remove every document of that source type
+
 ### Dev Tools
 
 Click the **Dev** (wrench) icon in the header to open the Dev Tools panel. From here you can:
@@ -220,7 +232,7 @@ Click the **Dev** (wrench) icon in the header to open the Dev Tools panel. From 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │ 🧁 rag-a-muffin    ● local  [will@gmail.com ✕]                       │
-│              [Status] [Sources] [Logs] [Upload Doc] [Sync All] [Dev] │
+│   [Status] [Sources] [Logs] [Upload Doc] [Sync All] [Index 42] [Dev] │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                      │
 │  YOU                                                                 │
@@ -412,6 +424,10 @@ All persistent data lives in `./data/` on the host:
 | `PUT` | `/config/connectors` | Save RSS / web connector config |
 | `GET` | `/logs` | Fetch recent application log entries |
 | `POST` | `/sync` | Immediately run all connectors (same as **Sync All** button) |
+| `GET` | `/index/stats` | Total vector count and per-source-type document counts |
+| `GET` | `/index/documents` | List all indexed documents (`?source=gmail` to filter by type) |
+| `DELETE` | `/index/documents/{id}` | Remove a document and all its chunks by document ID |
+| `DELETE` | `/index/source/{type}` | Bulk-remove all documents of a given source type |
 | `POST` | `/admin/restart` | Exit the process; Docker restarts the container with the current image |
 | `POST` | `/admin/rebuild` | Build a new image from source, then restart |
 
@@ -429,6 +445,8 @@ rag-a-muffin/
 │   ├── SourceDocument.cs      # Common document model for all connectors
 │   ├── EmbeddedChunk.cs       # Vector store payload
 │   ├── ScoredChunk.cs         # Search result
+│   ├── DocumentSummary.cs     # Per-document metadata for the index browser
+│   ├── IndexStats.cs          # Total vectors + per-source-type counts
 │   └── QueryRequest.cs        # Query + source type filter
 ├── Qdrant/
 │   └── QdrantInitializer.cs   # Collection + index setup

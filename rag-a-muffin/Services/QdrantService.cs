@@ -147,6 +147,106 @@ namespace RagAMuffin.Services
             }, cancellationToken: ct);
         }
 
+        public async Task DeleteBySourceTypeAsync(string sourceType, CancellationToken ct = default)
+        {
+            await _client.DeleteAsync(CollectionName, new Filter
+            {
+                Must =
+                {
+                    new Condition
+                    {
+                        Field = new FieldCondition
+                        {
+                            Key   = "sourceType",
+                            Match = new Match { Keyword = sourceType }
+                        }
+                    }
+                }
+            }, cancellationToken: ct);
+        }
+
+        public async Task<List<DocumentSummary>> ListDocumentsAsync(string? sourceType = null, CancellationToken ct = default)
+        {
+            var seen   = new Dictionary<string, DocumentSummary>(StringComparer.Ordinal);
+            PointId?   offset = null;
+            const uint batchSize = 500;
+
+            Filter? filter = sourceType is null ? null : new Filter
+            {
+                Must =
+                {
+                    new Condition
+                    {
+                        Field = new FieldCondition
+                        {
+                            Key   = "sourceType",
+                            Match = new Match { Keyword = sourceType }
+                        }
+                    }
+                }
+            };
+
+            do
+            {
+                var scrollResult = await _client.ScrollAsync(
+                    CollectionName,
+                    filter,
+                    batchSize,
+                    offset,
+                    (WithPayloadSelector)true,
+                    null,
+                    null,
+                    null,
+                    null,
+                    ct);
+
+                foreach (var point in scrollResult.Result)
+                {
+                    var docId = point.Payload["documentId"].StringValue;
+                    if (seen.ContainsKey(docId)) continue;
+
+                    var totalChunks = 1;
+                    if (point.Payload.TryGetValue("totalChunks", out var tc))
+                        totalChunks = (int)tc.IntegerValue;
+
+                    var url = point.Payload.TryGetValue("url", out var u) && !string.IsNullOrEmpty(u.StringValue)
+                        ? u.StringValue : null;
+
+                    seen[docId] = new DocumentSummary
+                    {
+                        DocumentId  = docId,
+                        SourceType  = point.Payload["sourceType"].StringValue,
+                        Title       = point.Payload["title"].StringValue,
+                        Author      = point.Payload["author"].StringValue,
+                        Url         = url,
+                        PublishedAt = point.Payload["publishedAt"].StringValue,
+                        ChunkCount  = totalChunks
+                    };
+                }
+
+                offset = scrollResult.NextPageOffset;
+            }
+            while (offset is not null);
+
+            return seen.Values
+                .OrderByDescending(d => d.PublishedAt)
+                .ToList();
+        }
+
+        public async Task<IndexStats> GetStatsAsync(CancellationToken ct = default)
+        {
+            var docs = await ListDocumentsAsync(null, ct);
+            var byType = docs
+                .GroupBy(d => d.SourceType)
+                .ToDictionary(g => g.Key, g => (long)g.Count());
+
+            return new IndexStats
+            {
+                TotalVectors = docs.Sum(d => (long)d.ChunkCount),
+                BySourceType = byType
+            };
+        }
+
         private static ScoredChunk MapPayload(MapField<string, Value> payload, float score)
         {
             var metadataRaw = payload.TryGetValue("metadata", out var m) ? m.StringValue : "{}";

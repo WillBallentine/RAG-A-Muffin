@@ -1353,6 +1353,225 @@
     text-align: center;
   }
 
+  /* ── Index button ── */
+  .btn-index {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
+    white-space: nowrap;
+  }
+  .btn-index:hover { border-color: #60a5fa; color: var(--text); }
+
+  .index-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: 8px;
+    font-size: 10px;
+    font-family: var(--mono);
+  }
+  .index-count-badge.empty { background: rgba(251,191,36,.15); color: #fbbf24; }
+
+  /* ── Index panel ── */
+  .index-panel {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 400;
+    display: flex;
+    flex-direction: column;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+  .index-panel.hidden { display: none; }
+
+  .index-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .index-panel-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+  }
+  .index-panel-subtitle {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .index-panel-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+  .index-panel-close:hover { color: var(--text); }
+
+  .index-stats-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 0 10px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .index-stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .index-stat-chip-label { color: var(--text); }
+  .index-stat-chip-count { color: var(--accent); }
+  .index-stat-chip-del {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 10px;
+    cursor: pointer;
+    padding: 0 2px;
+    border-radius: 3px;
+    line-height: 1;
+  }
+  .index-stat-chip-del:hover { color: var(--err); }
+
+  .index-filter-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px 0 8px;
+    flex-shrink: 0;
+  }
+  .index-search {
+    flex: 1;
+    padding: 7px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+  }
+  .index-search:focus { border-color: var(--accent); }
+  .index-search::placeholder { color: var(--text-muted); }
+
+  .index-type-select {
+    padding: 7px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+    cursor: pointer;
+  }
+  .index-type-select:focus { border-color: var(--accent); }
+
+  .index-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 24px;
+  }
+  .index-loading {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 40px 0;
+    text-align: center;
+  }
+  .index-empty {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 40px 0;
+    text-align: center;
+  }
+  .index-doc-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .index-doc-row:last-child { border-bottom: none; }
+  .index-doc-badge {
+    flex-shrink: 0;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    margin-top: 2px;
+  }
+  .index-doc-badge.gmail    { background: rgba(59,130,246,.15); color: #60a5fa; }
+  .index-doc-badge.drive    { background: rgba(74,222,128,.15); color: #4ade80; }
+  .index-doc-badge.calendar { background: rgba(167,139,250,.15); color: #a78bfa; }
+  .index-doc-badge.rss      { background: rgba(251,146,60,.15); color: #fb923c; }
+  .index-doc-badge.web      { background: rgba(251,191,36,.15); color: #fbbf24; }
+  .index-doc-badge.upload   { background: rgba(156,163,175,.15); color: #9ca3af; }
+  .index-doc-badge.watch    { background: rgba(156,163,175,.15); color: #9ca3af; }
+
+  .index-doc-info { flex: 1; min-width: 0; }
+  .index-doc-title {
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .index-doc-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .index-doc-del {
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-family: var(--mono);
+    cursor: pointer;
+    padding: 3px 8px;
+    border-radius: 6px;
+    transition: border-color .15s, color .15s;
+  }
+  .index-doc-del:hover { border-color: var(--err); color: var(--err); }
+
   /* ── Dev tools button ── */
   .btn-dev {
     display: flex;
@@ -1606,6 +1825,14 @@
         </svg>
         Logs
       </button>
+      <button class="btn-index" onclick="openIndex()" title="Document index">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+        </svg>
+        Index
+        <span class="index-count-badge" id="indexBadge">—</span>
+      </button>
       <button class="btn-dev" onclick="openDev()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
@@ -1792,6 +2019,34 @@
       <div class="dev-reconnect-label" id="devReconnectLabel">Waiting for server...</div>
       <div class="dev-reconnect-sub" id="devReconnectSub">0s elapsed</div>
     </div>
+  </div>
+</div>
+
+<!-- Index panel -->
+<div class="index-panel hidden" id="indexPanel">
+  <div class="index-panel-header">
+    <div>
+      <div class="index-panel-title">Document Index</div>
+      <div class="index-panel-subtitle" id="indexSubtitle">Loading…</div>
+    </div>
+    <button class="index-panel-close" onclick="closeIndex()">← back</button>
+  </div>
+  <div class="index-stats-bar" id="indexStatsBar"></div>
+  <div class="index-filter-row">
+    <input class="index-search" id="indexSearch" placeholder="Filter by title or author…" oninput="renderIndexList()" />
+    <select class="index-type-select" id="indexTypeFilter" onchange="renderIndexList()">
+      <option value="">All sources</option>
+      <option value="gmail">Email</option>
+      <option value="drive">Drive</option>
+      <option value="calendar">Calendar</option>
+      <option value="rss">RSS</option>
+      <option value="web">Web</option>
+      <option value="upload">Upload</option>
+      <option value="watch">Watch</option>
+    </select>
+  </div>
+  <div class="index-list" id="indexList">
+    <div class="index-loading">Loading…</div>
   </div>
 </div>
 
@@ -2574,6 +2829,152 @@
     }, 2000);
   }
 
+  // ── Index panel ──────────────────────────────────────────
+  let allIndexDocs  = [];
+  let indexLoaded   = false;
+
+  const SOURCE_LABELS = {
+    gmail: 'Email', drive: 'Drive', calendar: 'Calendar',
+    rss: 'RSS', web: 'Web', upload: 'Upload', watch: 'Watch'
+  };
+
+  async function openIndex() {
+    document.getElementById('indexPanel').classList.remove('hidden');
+    if (!indexLoaded) await loadIndex();
+  }
+
+  function closeIndex() {
+    document.getElementById('indexPanel').classList.add('hidden');
+  }
+
+  async function loadIndex() {
+    document.getElementById('indexList').innerHTML    = '<div class="index-loading">Loading…</div>';
+    document.getElementById('indexStatsBar').innerHTML = '';
+    document.getElementById('indexSubtitle').textContent = 'Loading…';
+
+    const [statsRes, docsRes] = await Promise.all([
+      fetch(`${API_BASE}/index/stats`,     { cache: 'no-store' }),
+      fetch(`${API_BASE}/index/documents`, { cache: 'no-store' })
+    ]);
+
+    if (!statsRes.ok || !docsRes.ok) {
+      document.getElementById('indexList').innerHTML = '<div class="index-empty">Failed to load index.</div>';
+      return;
+    }
+
+    const stats = await statsRes.json();
+    allIndexDocs = await docsRes.json();
+    indexLoaded  = true;
+
+    renderStatsBar(stats);
+    updateIndexBadge(allIndexDocs.length);
+    document.getElementById('indexSubtitle').textContent =
+      `${allIndexDocs.length} document${allIndexDocs.length !== 1 ? 's' : ''} · ${stats.totalVectors.toLocaleString()} vectors`;
+    renderIndexList();
+  }
+
+  function renderStatsBar(stats) {
+    const bar = document.getElementById('indexStatsBar');
+    const entries = Object.entries(stats.bySourceType || {});
+    if (entries.length === 0) {
+      bar.innerHTML = '<span style="font-family:var(--mono);font-size:11px;color:var(--text-muted)">No documents indexed yet.</span>';
+      return;
+    }
+    bar.innerHTML = entries.map(([type, count]) => `
+      <div class="index-stat-chip">
+        <span class="index-stat-chip-label">${SOURCE_LABELS[type] ?? type}</span>
+        <span class="index-stat-chip-count">${count.toLocaleString()} vec</span>
+        <button class="index-stat-chip-del" title="Delete all ${type} documents"
+                onclick="deleteBySourceType('${type}')">✕</button>
+      </div>`).join('');
+  }
+
+  function renderIndexList() {
+    const query  = document.getElementById('indexSearch').value.trim().toLowerCase();
+    const filter = document.getElementById('indexTypeFilter').value;
+
+    const filtered = allIndexDocs.filter(d => {
+      if (filter && d.sourceType !== filter) return false;
+      if (query && !d.title.toLowerCase().includes(query) && !d.author.toLowerCase().includes(query)) return false;
+      return true;
+    });
+
+    const list = document.getElementById('indexList');
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="index-empty">No documents match.</div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(d => {
+      const date   = d.publishedAt ? new Date(d.publishedAt).toLocaleDateString() : '—';
+      const meta   = [d.author, date, `${d.chunkCount} chunk${d.chunkCount !== 1 ? 's' : ''}`]
+                       .filter(Boolean).join(' · ');
+      const label  = SOURCE_LABELS[d.sourceType] ?? d.sourceType;
+      const safeId = escapeHtml(d.documentId);
+      return `
+        <div class="index-doc-row">
+          <span class="index-doc-badge ${d.sourceType}">${label}</span>
+          <div class="index-doc-info">
+            <div class="index-doc-title" title="${escapeHtml(d.title)}">${escapeHtml(d.title)}</div>
+            <div class="index-doc-meta">${escapeHtml(meta)}</div>
+          </div>
+          <button class="index-doc-del" onclick="deleteDoc('${safeId}', '${escapeHtml(d.title).replace(/'/g,"\\'")}')">✕ Remove</button>
+        </div>`;
+    }).join('');
+  }
+
+  function updateIndexBadge(count) {
+    const badge = document.getElementById('indexBadge');
+    badge.textContent = count;
+    badge.className   = `index-count-badge${count === 0 ? ' empty' : ''}`;
+  }
+
+  async function refreshIndexBadge() {
+    try {
+      const res = await fetch(`${API_BASE}/index/stats`, { cache: 'no-store' });
+      if (!res.ok) return;
+      const stats = await res.json();
+      const total = Object.values(stats.bySourceType || {}).reduce((a, b) => a + b, 0);
+      // total vectors → approximate doc count from loaded list, or show vectors
+      updateIndexBadge(allIndexDocs.length > 0 ? allIndexDocs.length : total);
+    } catch { /* server starting */ }
+  }
+
+  async function deleteDoc(documentId, title) {
+    if (!confirm(`Remove "${title}" from the index?\n\nThis only removes it from the vector store — the source data is untouched.`)) return;
+    const res = await fetch(`${API_BASE}/index/documents/${encodeURIComponent(documentId)}`, { method: 'DELETE' });
+    if (!res.ok) { showToast('Delete failed', true); return; }
+    allIndexDocs = allIndexDocs.filter(d => d.documentId !== documentId);
+    renderStatsBar({ bySourceType: countByType(allIndexDocs) });
+    updateIndexBadge(allIndexDocs.length);
+    document.getElementById('indexSubtitle').textContent =
+      `${allIndexDocs.length} document${allIndexDocs.length !== 1 ? 's' : ''}`;
+    renderIndexList();
+    showToast('✓ Document removed from index');
+  }
+
+  async function deleteBySourceType(sourceType) {
+    const label = SOURCE_LABELS[sourceType] ?? sourceType;
+    const count = allIndexDocs.filter(d => d.sourceType === sourceType).length;
+    if (!confirm(`Delete all ${count} ${label} document${count !== 1 ? 's' : ''} from the index?\n\nThis only clears the vector store — source data is untouched.`)) return;
+    const res = await fetch(`${API_BASE}/index/source/${encodeURIComponent(sourceType)}`, { method: 'DELETE' });
+    if (!res.ok) { showToast('Delete failed', true); return; }
+    allIndexDocs = allIndexDocs.filter(d => d.sourceType !== sourceType);
+    renderStatsBar({ bySourceType: countByType(allIndexDocs) });
+    updateIndexBadge(allIndexDocs.length);
+    document.getElementById('indexSubtitle').textContent =
+      `${allIndexDocs.length} document${allIndexDocs.length !== 1 ? 's' : ''}`;
+    renderIndexList();
+    showToast(`✓ All ${label} documents removed`);
+  }
+
+  function countByType(docs) {
+    return docs.reduce((acc, d) => {
+      acc[d.sourceType] = (acc[d.sourceType] ?? 0) + d.chunkCount;
+      return acc;
+    }, {});
+  }
+
   // ── Init ─────────────────────────────────────────────────
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
@@ -2581,9 +2982,11 @@
       closeSettings();
       closeDev();
       closeLogs();
+      closeIndex();
       closePreviewBtn();
     }
   });
+  refreshIndexBadge();
   boot();
 </script>
 </body>

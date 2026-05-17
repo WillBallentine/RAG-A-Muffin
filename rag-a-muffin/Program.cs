@@ -298,6 +298,33 @@ app.MapPost("/sync", async (ConnectorSyncService syncService, CancellationToken 
     return Results.Ok(new { message = "Sync complete" });
 });
 
+// ── Index management endpoints ────────────────────────────────────────────────
+
+app.MapGet("/index/stats", async (IVectorStore store, CancellationToken ct) =>
+    Results.Ok(await store.GetStatsAsync(ct)));
+
+app.MapGet("/index/documents", async (HttpRequest req, IVectorStore store, CancellationToken ct) =>
+{
+    var sourceType = req.Query["source"].ToString();
+    var docs = await store.ListDocumentsAsync(
+        string.IsNullOrWhiteSpace(sourceType) ? null : sourceType, ct);
+    return Results.Ok(docs);
+});
+
+app.MapDelete("/index/documents/{documentId}", async (string documentId, IVectorStore store, CancellationToken ct) =>
+{
+    await store.DeleteByDocumentIdAsync(documentId, ct);
+    logger.LogInformation("Document deleted from index: {DocumentId}", documentId);
+    return Results.Ok(new { deleted = documentId });
+});
+
+app.MapDelete("/index/source/{sourceType}", async (string sourceType, IVectorStore store, CancellationToken ct) =>
+{
+    await store.DeleteBySourceTypeAsync(sourceType, ct);
+    logger.LogInformation("All '{SourceType}' documents deleted from index", sourceType);
+    return Results.Ok(new { deleted = sourceType });
+});
+
 // ── Dev / admin endpoints ─────────────────────────────────────────────────────
 
 app.MapPost("/admin/restart", async ctx =>
