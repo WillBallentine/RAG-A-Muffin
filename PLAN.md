@@ -51,14 +51,14 @@ The index is currently a black box. You can put things in but can't see or manag
 
 ---
 
-### Phase 5 — Conversation Memory
+### Phase 5 — Conversation Memory ✓
 
 Each query is currently stateless. Multi-turn context would make the assistant far more useful.
 
-- [ ] **Session conversation history** — carry the last N turns of Q&A into the LLM prompt so follow-up questions work ("what about the one from last week?" refers to the previous answer).
-- [ ] **Persist chat sessions to disk** — save conversations to `./data/chats/` as JSON; load on page refresh.
-- [ ] **Chat history browser** — sidebar or panel listing past sessions; click to restore.
-- [ ] **Clear session** — button to start a fresh conversation without page reload.
+- [x] **Session conversation history** — carry the last N turns of Q&A into the LLM prompt so follow-up questions work ("what about the one from last week?" refers to the previous answer).
+- [x] **Persist chat sessions to disk** — save conversations to `./data/chats/` as JSON; load on page refresh.
+- [x] **Chat history browser** — panel listing past sessions; click to restore, with delete per session.
+- [x] **Clear session** — "new chat" link in input bar and button in history panel starts a fresh conversation.
 
 ---
 

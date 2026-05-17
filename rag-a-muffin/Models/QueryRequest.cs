@@ -7,5 +7,8 @@ namespace RagAMuffin.Models
         // Optional source type filter. null/empty = all sources.
         // e.g. ["gmail"], ["pdf","docx"], ["pdf","docx","txt","md"]
         public string[]? SourceTypes { get; init; }
+        // Prior conversation turns (role + content only; CitationsJson ignored by the LLM).
+        // Frontend sends the last N turns so the model can answer follow-up questions.
+        public ChatMessage[]? History { get; init; }
     }
 }

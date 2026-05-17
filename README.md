@@ -204,6 +204,15 @@ Click the **Sources** icon in the header to open the connector config panel. Add
 
 Click **Sync All** in the header to immediately run all connectors (Gmail, Drive, Calendar, RSS, web). Useful after adding a new source or when you want fresh data without waiting for the next scheduled sync.
 
+### Conversation memory
+
+Each Q&A turn is automatically added to the current session's context. Follow-up questions like "what about the one from last week?" or "can you summarise that differently?" work without repeating yourself.
+
+- **Auto-save** — sessions are saved to `./data/chats/` as JSON after every response and restored on page reload.
+- **History panel** — click the **History** (clock) icon to browse past sessions. Click any session to restore the full conversation.
+- **New chat** — click **+ New Chat** inside the history panel, or the **new chat** link in the input bar, to start a fresh session without losing the old one.
+- The last 5 Q&A turns (10 messages) are sent as context with each query. Older turns remain visible in the UI and saved to disk, but are not re-sent to avoid prompt bloat.
+
 ### Index browser
 
 Click the **Index** (database) icon in the header to open the document index panel. The badge on the button shows the total number of indexed documents at a glance, and turns amber when the index is empty.
@@ -232,7 +241,7 @@ Click the **Dev** (wrench) icon in the header to open the Dev Tools panel. From 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │ 🧁 rag-a-muffin    ● local  [will@gmail.com ✕]                       │
-│   [Status] [Sources] [Logs] [Upload Doc] [Sync All] [Index 42] [Dev] │
+│ [Status] [Sources] [Logs] [Upload Doc] [Sync All] [Index 42] [Hist] [Dev] │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                      │
 │  YOU                                                                 │
@@ -403,6 +412,7 @@ All persistent data lives in `./data/` on the host:
 | `./data/uploads/` | Uploaded files |
 | `./data/watch/` | Watch folder (drop files here for auto-ingestion) |
 | `./data/connectors.json` | RSS feeds and web URLs saved via the Sources UI |
+| `./data/chats/` | Chat sessions (one JSON file per session) |
 | `qdrant_data` (Docker volume) | Vector embeddings |
 | `ollama_data` (Docker volume) | Downloaded models |
 
@@ -424,6 +434,10 @@ All persistent data lives in `./data/` on the host:
 | `PUT` | `/config/connectors` | Save RSS / web connector config |
 | `GET` | `/logs` | Fetch recent application log entries |
 | `POST` | `/sync` | Immediately run all connectors (same as **Sync All** button) |
+| `GET` | `/chats` | List all saved chat sessions (id, title, date, message count) |
+| `GET` | `/chats/{id}` | Get a full session including all messages |
+| `POST` | `/chats` | Create or update a session |
+| `DELETE` | `/chats/{id}` | Delete a session |
 | `GET` | `/index/stats` | Total vector count and per-source-type document counts |
 | `GET` | `/index/documents` | List all indexed documents (`?source=gmail` to filter by type) |
 | `DELETE` | `/index/documents/{id}` | Remove a document and all its chunks by document ID |
@@ -447,7 +461,9 @@ rag-a-muffin/
 │   ├── ScoredChunk.cs         # Search result
 │   ├── DocumentSummary.cs     # Per-document metadata for the index browser
 │   ├── IndexStats.cs          # Total vectors + per-source-type counts
-│   └── QueryRequest.cs        # Query + source type filter
+│   ├── ChatMessage.cs         # Single conversation turn (role + content)
+│   ├── ChatSession.cs         # Saved conversation with messages
+│   └── QueryRequest.cs        # Query + source type filter + history
 ├── Qdrant/
 │   └── QdrantInitializer.cs   # Collection + index setup
 ├── Services/
@@ -456,6 +472,7 @@ rag-a-muffin/
 │   │                          # GoogleCalendarConnector, RssConnector, WebConnector
 │   ├── Extractors/            # PdfExtractor, DocxExtractor, PlainTextExtractor
 │   ├── Logging/               # InMemoryLogBuffer + ILoggerProvider
+│   ├── ChatSessionService.cs      # Save/load chat sessions from ./data/chats/
 │   ├── ConnectorConfigService.cs  # Live RSS/web config (persisted to connectors.json)
 │   ├── ConnectorSyncService.cs    # BackgroundService: runs all connectors on interval
 │   ├── FileWatcherService.cs      # BackgroundService: watches ./data/watch/

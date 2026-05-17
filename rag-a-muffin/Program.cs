@@ -44,6 +44,7 @@ builder.Services.AddSingleton<QdrantClient>(sp =>
 
 builder.Services.AddScoped<QdrantCollectionInitializer>();
 builder.Services.AddScoped<IRagQueryService, RagQueryService>();
+builder.Services.AddSingleton<ChatSessionService>();
 builder.Services.AddScoped<IVectorStore, QdrantVectorStore>();
 builder.Services.AddScoped<IChunker>(sp => new TextChunker(sp.GetRequiredService<ILogger<TextChunker>>(), 100, 25));
 builder.Services.AddScoped<IEmailParser, EmailParser>();
@@ -94,6 +95,7 @@ logger.LogInformation("Starting Rag-A-Muffin application...");
 Directory.CreateDirectory("/app/data/tokens");
 Directory.CreateDirectory("/app/data/uploads");
 Directory.CreateDirectory("/app/data/watch");
+Directory.CreateDirectory("/app/data/chats");
 
 var initializer = app.Services.GetRequiredService<QdrantCollectionInitializer>();
 await initializer.InitializeAsync();
@@ -296,6 +298,35 @@ app.MapPost("/sync", async (ConnectorSyncService syncService, CancellationToken 
 {
     await syncService.SyncAllAsync(ct);
     return Results.Ok(new { message = "Sync complete" });
+});
+
+// ── Chat session endpoints ────────────────────────────────────────────────────
+
+app.MapGet("/chats", async (ChatSessionService chatService) =>
+{
+    var sessions = await chatService.ListAsync();
+    return Results.Ok(sessions.Select(s => new
+    {
+        id           = s.Id,
+        title        = s.Title,
+        updatedAt    = s.UpdatedAt,
+        messageCount = s.Messages.Count
+    }));
+});
+
+app.MapGet("/chats/{id}", async (string id, ChatSessionService chatService) =>
+{
+    var session = await chatService.GetAsync(id);
+    return session is null ? Results.NotFound() : Results.Ok(session);
+});
+
+app.MapPost("/chats", async (ChatSession session, ChatSessionService chatService) =>
+    Results.Ok(await chatService.SaveAsync(session)));
+
+app.MapDelete("/chats/{id}", async (string id, ChatSessionService chatService) =>
+{
+    await chatService.DeleteAsync(id);
+    return Results.Ok(new { deleted = id });
 });
 
 // ── Index management endpoints ────────────────────────────────────────────────

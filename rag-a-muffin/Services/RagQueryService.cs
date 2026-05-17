@@ -42,7 +42,7 @@ namespace RagAMuffin.Services
                 };
             }
 
-            var prompt = BuildPrompt(request.Query, chunks);
+            var prompt = BuildPrompt(request.Query, chunks, request.History);
             _logger.LogInformation("Sending prompt to LLM ({ChunkCount} chunks)...", chunks.Count);
             var answer = await _llm.CompleteAsync(prompt, ct);
 
@@ -76,7 +76,7 @@ namespace RagAMuffin.Services
                 yield break;
             }
 
-            var prompt = BuildPrompt(request.Query, chunks);
+            var prompt = BuildPrompt(request.Query, chunks, request.History);
 
             await foreach (var token in _llm.StreamAsync(prompt, ct))
             {
@@ -160,7 +160,7 @@ namespace RagAMuffin.Services
             );
         }
 
-        private static string BuildPrompt(string question, List<ScoredChunk> chunks)
+        private static string BuildPrompt(string question, List<ScoredChunk> chunks, ChatMessage[]? history = null)
         {
             var today = DateTime.Now.ToString("dddd, MMMM d, yyyy");
 
@@ -189,15 +189,24 @@ namespace RagAMuffin.Services
                 return sb.ToString().TrimEnd();
             }));
 
+            var historySection = "";
+            if (history is { Length: > 0 })
+            {
+                var turns = string.Join("\n", history.Select(m =>
+                    m.Role == "user" ? $"User: {m.Content}" : $"Assistant: {m.Content}"));
+                historySection = $"\n\nCONVERSATION HISTORY:\n{turns}";
+            }
+
             return $"""
         You are a personal assistant. Today is {today}.
         Answer the user's question using only the documents provided below.
+        When a question refers to something from the conversation history, use both the documents and the history to answer.
         Be direct and specific — if the answer is yes/no, lead with that.
         When dates or authors matter, mention them in your answer.
         If the documents don't contain enough information to answer, say so clearly — don't guess.
 
         DOCUMENTS:
-        {context}
+        {context}{historySection}
 
         QUESTION: {question}
 
