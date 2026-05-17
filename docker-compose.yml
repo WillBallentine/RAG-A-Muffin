@@ -1,3 +1,5 @@
+name: rag-a-muffin
+
 services:
   qdrant:
     image: qdrant/qdrant
@@ -26,6 +28,8 @@ services:
 
   api:
     build: .
+    image: rag-a-muffin-api
+    restart: unless-stopped
     ports:
       - "8000:8000"
     depends_on:
@@ -34,11 +38,12 @@ services:
     environment:
       - DOTNET_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8000
+      - HOST_PROJECT_DIR=${PWD}
     volumes:
-      - ./credentials.json:/app/credentials.json  # mount, never bake into image
-      - ./data/tokens:/app/data/tokens
-      - ./data/uploads:/app/data/uploads
-      - ./data/watch:/app/data/watch
+      - /var/run/docker.sock:/var/run/docker.sock  # lets the app trigger restart/rebuild
+      - .:/workspace:ro                             # build context for rebuild
+      - ./credentials.json:/app/credentials.json
+      - ./data:/app/data                            # persists connectors.json, tokens, uploads, watch
 
 volumes:
   qdrant_data:

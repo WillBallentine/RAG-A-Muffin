@@ -83,10 +83,12 @@ namespace RagAMuffin.Services
                 yield return token;
             }
 
-            // One card per document — keep the highest-scoring chunk (chunks are already score-ordered)
+            // One card per document — sort newest-first so recency queries surface the right result
             var seen = new HashSet<string>();
             var dedupedCitations = chunks
                 .Where(c => seen.Add(c.DocumentId))
+                .OrderByDescending(c => c.PublishedAt)
+                .ThenByDescending(c => c.Score)
                 .Select(c => new
                 {
                     documentId     = c.DocumentId,

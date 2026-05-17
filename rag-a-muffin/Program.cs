@@ -8,6 +8,7 @@ using RagAMuffin.Services.Extractors;
 using RagAMuffin.Services.Logging;
 using RagAMuffin.Qdrant;
 using Qdrant.Client;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,7 +70,8 @@ builder.Services.AddScoped<IDocumentExtractor, DocxExtractor>();
 builder.Services.AddScoped<IDocumentExtractor, PlainTextExtractor>();
 builder.Services.AddScoped<FileIngestionService>();
 
-builder.Services.AddHostedService<ConnectorSyncService>();
+builder.Services.AddSingleton<ConnectorSyncService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<ConnectorSyncService>());
 builder.Services.AddHostedService<FileWatcherService>();
 
 builder.Logging.ClearProviders();
@@ -288,6 +290,66 @@ app.MapPost("/query/stream", async (QueryRequest request, IRagQueryService query
 
     await ctx.Response.WriteAsync("data: [DONE]\n\n", ct);
     await ctx.Response.Body.FlushAsync(ct);
+});
+
+app.MapPost("/sync", async (ConnectorSyncService syncService, CancellationToken ct) =>
+{
+    await syncService.SyncAllAsync(ct);
+    return Results.Ok(new { message = "Sync complete" });
+});
+
+// ── Dev / admin endpoints ─────────────────────────────────────────────────────
+
+app.MapPost("/admin/restart", async ctx =>
+{
+    ctx.Response.ContentType = "application/json";
+    await ctx.Response.WriteAsync("{\"message\":\"Restarting...\"}");
+    await ctx.Response.CompleteAsync();
+    _ = Task.Run(async () => { await Task.Delay(200); Environment.Exit(0); });
+});
+
+app.MapPost("/admin/rebuild", async ctx =>
+{
+    ctx.Response.ContentType = "application/json";
+    await ctx.Response.WriteAsync("{\"message\":\"Rebuild started.\"}");
+    await ctx.Response.CompleteAsync();
+
+    var hostProjectDir = Environment.GetEnvironmentVariable("HOST_PROJECT_DIR") ?? "";
+    var containerId = System.Net.Dns.GetHostName();
+
+    _ = Task.Run(() =>
+    {
+        if (string.IsNullOrEmpty(hostProjectDir))
+        {
+            logger.LogError("Rebuild requires HOST_PROJECT_DIR env var — add it to docker-compose.yml");
+            return;
+        }
+
+        // Disable restart policy so Docker doesn't race-restart us while the helper is building
+        Process.Start(new ProcessStartInfo("docker")
+        {
+            UseShellExecute = false,
+            ArgumentList = { "update", "--restart=no", containerId }
+        })?.WaitForExit();
+
+        // Start a detached helper container: it waits for this container to exit,
+        // then performs the full rebuild in its own PID namespace (survives our exit)
+        var script = $"docker wait {containerId} && docker compose -f /workspace/docker-compose.yml up --build -d api";
+        var psi = new ProcessStartInfo("docker") { UseShellExecute = false };
+        psi.ArgumentList.Add("run");
+        psi.ArgumentList.Add("--rm");
+        psi.ArgumentList.Add("--detach");
+        psi.ArgumentList.Add("-v"); psi.ArgumentList.Add("/var/run/docker.sock:/var/run/docker.sock");
+        psi.ArgumentList.Add("-v"); psi.ArgumentList.Add($"{hostProjectDir}:/workspace");
+        psi.ArgumentList.Add("--entrypoint"); psi.ArgumentList.Add("/bin/sh");
+        psi.ArgumentList.Add("rag-a-muffin-api");
+        psi.ArgumentList.Add("-c");
+        psi.ArgumentList.Add(script);
+        Process.Start(psi)?.WaitForExit();
+
+        Thread.Sleep(300);
+        Environment.Exit(0);
+    });
 });
 
 app.Run();

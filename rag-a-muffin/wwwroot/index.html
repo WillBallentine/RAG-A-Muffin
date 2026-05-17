@@ -470,7 +470,7 @@
     transform: translateY(80px);
     opacity: 0;
     transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
-    z-index: 100;
+    z-index: 500;
     pointer-events: none;
   }
 
@@ -1352,6 +1352,166 @@
     padding: 40px 0;
     text-align: center;
   }
+
+  /* ── Dev tools button ── */
+  .btn-dev {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+
+  .btn-dev:hover { border-color: #facc15; color: var(--text); }
+
+  /* ── Dev tools panel ── */
+  .dev-panel {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 400;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn .15s ease;
+  }
+
+  .dev-panel.hidden { display: none; }
+
+  .dev-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .dev-panel-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dev-panel-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: color .15s, border-color .15s;
+  }
+
+  .dev-panel-close:hover { color: var(--text); border-color: var(--text-muted); }
+
+  .dev-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+    max-width: 580px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .dev-warning {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: #facc15;
+    background: rgba(250,204,21,.07);
+    border: 1px solid rgba(250,204,21,.25);
+    border-radius: 8px;
+    padding: 10px 14px;
+    line-height: 1.6;
+  }
+
+  .dev-action-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dev-action-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .dev-action-desc {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  .btn-dev-action {
+    align-self: flex-start;
+    margin-top: 4px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+
+  .btn-dev-action:hover { border-color: var(--accent); background: var(--accent-dim); }
+  .btn-dev-action:disabled { opacity: .4; cursor: not-allowed; }
+
+  .btn-dev-action.danger { border-color: rgba(250,204,21,.4); }
+  .btn-dev-action.danger:hover { border-color: #facc15; background: rgba(250,204,21,.07); }
+
+  .dev-reconnect {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 40px 0;
+  }
+
+  .dev-reconnect.hidden { display: none; }
+
+  .dev-reconnect-spinner {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+
+  .dev-reconnect-label {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .dev-reconnect-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
 </style>
 </head>
 <body>
@@ -1446,6 +1606,12 @@
         </svg>
         Logs
       </button>
+      <button class="btn-dev" onclick="openDev()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+        Dev
+      </button>
       <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt,.md" style="display:none" onchange="uploadFile(this)" multiple />
       <button class="btn-upload" id="uploadBtn" onclick="document.getElementById('fileInput').click()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1453,14 +1619,14 @@
         </svg>
         Upload Doc
       </button>
-      <button class="btn-sync" id="syncBtn" onclick="syncInbox()">
+      <button class="btn-sync" id="syncBtn" onclick="syncAll()">
         <svg id="syncIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
           <path d="M3 3v5h5"/>
           <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
           <path d="M16 21h5v-5"/>
         </svg>
-        Sync Inbox
+        Sync All
       </button>
     </div>
   </header>
@@ -1578,6 +1744,54 @@
 
   <div class="settings-footer">
     <button class="btn-save-config" id="saveConfigBtn" onclick="saveConnectorConfig()">Save changes</button>
+  </div>
+</div>
+
+<!-- Dev tools panel -->
+<div class="dev-panel hidden" id="devPanel">
+  <div class="dev-panel-header">
+    <div class="dev-panel-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+      </svg>
+      Dev Tools
+    </div>
+    <button class="dev-panel-close" onclick="closeDev()">← back</button>
+  </div>
+  <div class="dev-body">
+    <div class="dev-warning">
+      Requires <code style="font-family:var(--mono);font-size:11px;background:rgba(250,204,21,.1);padding:1px 5px;border-radius:3px">/var/run/docker.sock</code>
+      and <code style="font-family:var(--mono);font-size:11px;background:rgba(250,204,21,.1);padding:1px 5px;border-radius:3px">.:/workspace:ro</code>
+      mounts — both are in <code style="font-family:var(--mono);font-size:11px;background:rgba(250,204,21,.1);padding:1px 5px;border-radius:3px">docker-compose.yml</code>.
+    </div>
+
+    <div id="devActions">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="dev-action-card">
+          <div class="dev-action-name">Restart</div>
+          <div class="dev-action-desc">
+            Restarts the container using the current image. Config and data changes take effect immediately.
+            Downtime is typically 2–5 seconds.
+          </div>
+          <button class="btn-dev-action" id="btnRestart" onclick="adminAction('restart')">Restart container</button>
+        </div>
+
+        <div class="dev-action-card">
+          <div class="dev-action-name">Rebuild</div>
+          <div class="dev-action-desc">
+            Recompiles the .NET app from source and replaces the container. Use this after pushing code changes.
+            Downtime is typically 60–90 seconds.
+          </div>
+          <button class="btn-dev-action danger" id="btnRebuild" onclick="adminAction('rebuild')">Rebuild &amp; restart</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dev-reconnect hidden" id="devReconnect">
+      <div class="dev-reconnect-spinner"></div>
+      <div class="dev-reconnect-label" id="devReconnectLabel">Waiting for server...</div>
+      <div class="dev-reconnect-sub" id="devReconnectSub">0s elapsed</div>
+    </div>
   </div>
 </div>
 
@@ -1773,16 +1987,16 @@
     document.getElementById('input').focus();
   }
 
-  // ── Sync Inbox ───────────────────────────────────────────
-  async function syncInbox() {
+  // ── Sync All ─────────────────────────────────────────────
+  async function syncAll() {
     const btn = document.getElementById('syncBtn');
     btn.disabled = true;
     btn.classList.add('spinning');
 
     try {
-      const res = await fetch(`${API_BASE}/inbox?userId=${encodeURIComponent(currentUserId)}`);
+      const res = await fetch(`${API_BASE}/sync`, { method: 'POST' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      showToast('✓ Inbox synced successfully');
+      showToast('✓ Sync complete');
     } catch (err) {
       showToast(`Sync failed: ${err.message}`, true);
     } finally {
@@ -2169,8 +2383,9 @@
 
   async function openSettings() {
     document.getElementById('settingsPanel').classList.remove('hidden');
+    renderConnectorConfig(); // render cached state immediately
     try {
-      const res = await fetch(`${API_BASE}/config/connectors`);
+      const res = await fetch(`${API_BASE}/config/connectors`, { cache: 'no-store' });
       if (res.ok) {
         connectorConfig = await res.json();
         renderConnectorConfig();
@@ -2230,6 +2445,10 @@
   }
 
   async function saveConnectorConfig() {
+    // Flush any URL typed in the input fields but not yet added to the list
+    if (document.getElementById('rssUrlInput').value.trim()) addEntry('rss');
+    if (document.getElementById('webUrlInput').value.trim()) addEntry('web');
+
     const btn = document.getElementById('saveConfigBtn');
     btn.disabled    = true;
     btn.textContent = 'Saving...';
@@ -2302,11 +2521,65 @@
     }).join('');
   }
 
+  // ── Dev tools ────────────────────────────────────────────
+  function openDev() {
+    document.getElementById('devActions').classList.remove('hidden');
+    document.getElementById('devReconnect').classList.add('hidden');
+    document.getElementById('btnRestart').disabled = false;
+    document.getElementById('btnRestart').textContent = 'Restart container';
+    document.getElementById('btnRebuild').disabled = false;
+    document.getElementById('btnRebuild').textContent = 'Rebuild & restart';
+    document.getElementById('devPanel').classList.remove('hidden');
+  }
+
+  function closeDev() {
+    document.getElementById('devPanel').classList.add('hidden');
+  }
+
+  async function adminAction(action) {
+    const isRebuild = action === 'rebuild';
+    const btn = document.getElementById(isRebuild ? 'btnRebuild' : 'btnRestart');
+
+    btn.disabled = true;
+    btn.textContent = isRebuild ? 'Rebuilding...' : 'Restarting...';
+
+    try {
+      await fetch(`${API_BASE}/admin/${action}`, { method: 'POST' });
+    } catch { /* server going down — expected */ }
+
+    // Switch to reconnecting view
+    document.getElementById('devActions').classList.add('hidden');
+    const reconnect = document.getElementById('devReconnect');
+    reconnect.classList.remove('hidden');
+    document.getElementById('devReconnectLabel').textContent =
+      isRebuild ? 'Rebuilding & restarting...' : 'Restarting...';
+
+    let elapsed = 0;
+    const sub = document.getElementById('devReconnectSub');
+    sub.textContent = '0s elapsed';
+
+    const timer = setInterval(async () => {
+      elapsed += 2;
+      sub.textContent = `${elapsed}s elapsed`;
+      try {
+        const res = await fetch(`${API_BASE}/setup/status`,
+          { signal: AbortSignal.timeout(1500) });
+        if (res.ok) {
+          clearInterval(timer);
+          document.getElementById('devReconnectLabel').textContent = 'Back online — reloading...';
+          sub.textContent = '';
+          setTimeout(() => window.location.reload(), 800);
+        }
+      } catch { /* still down */ }
+    }, 2000);
+  }
+
   // ── Init ─────────────────────────────────────────────────
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       closeStatus();
       closeSettings();
+      closeDev();
       closeLogs();
       closePreviewBtn();
     }

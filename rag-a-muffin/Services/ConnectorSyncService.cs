@@ -32,7 +32,7 @@ namespace RagAMuffin.Services
             }
         }
 
-        private async Task SyncAllAsync(CancellationToken ct)
+        public async Task SyncAllAsync(CancellationToken ct)
         {
             _logger.LogInformation("Connector sync starting...");
             try
