@@ -76,6 +76,10 @@ namespace RagAMuffin.Services
     {
         public List<FeedEntry> RssFeeds { get; set; } = [];
         public List<FeedEntry> WebUrls  { get; set; } = [];
+        // Which connector source types are active. All enabled when list is empty or null.
+        public List<string> EnabledConnectors { get; set; } = ["gmail", "drive", "calendar", "rss", "web"];
+        // How often the background sync runs (minutes). 0 = use appsettings default.
+        public int SyncIntervalMinutes { get; set; } = 0;
     }
 
     public class FeedEntry

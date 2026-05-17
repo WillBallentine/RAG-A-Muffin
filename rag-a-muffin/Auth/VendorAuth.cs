@@ -37,8 +37,15 @@ namespace RagAMuffin.Auth
 
         public static async Task<bool> HasStoredCredentialAsync(string userId)
         {
-            var flow = await CreateFlowAsync();
-            return await flow.LoadTokenAsync(userId, CancellationToken.None) != null;
+            try
+            {
+                var flow = await CreateFlowAsync();
+                return await flow.LoadTokenAsync(userId, CancellationToken.None) != null;
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                return false;
+            }
         }
 
         public static async Task<string> GetAuthorizationUrlAsync(string userId, string redirectUri)

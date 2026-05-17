@@ -110,7 +110,7 @@ namespace RagAMuffin.Services
 
         private async Task<List<ScoredChunk>> ResolveChunksAsync(QueryRequest request, float[] queryVector, CancellationToken ct)
         {
-            var vectorResults = await _vectorStore.SearchAsync(queryVector, request.TopK, request.SourceTypes, ct);
+            var vectorResults = await _vectorStore.SearchAsync(queryVector, request.TopK, request.SourceTypes, request.DateFrom, request.DateTo, ct);
             _logger.LogInformation("Vector search returned {Count} chunks", vectorResults.Count);
 
             var (senderName, recipientName) = ExtractPersonFilters(request.Query);

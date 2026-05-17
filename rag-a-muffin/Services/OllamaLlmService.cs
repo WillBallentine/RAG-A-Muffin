@@ -1,28 +1,30 @@
 using RagAMuffin.Services.Interfaces;
 using RagAMuffin.Models;
-using Google.Apis.Gmail.v1.Data;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 namespace RagAMuffin.Services
 {
     public class OllamaLlmService : ILlmService
     {
-        private readonly HttpClient _http;
+        private readonly HttpClient      _http;
         private readonly ILogger<OllamaLlmService> _logger;
+        private readonly SettingsService _settings;
 
-        public OllamaLlmService(HttpClient http, ILogger<OllamaLlmService> logger)
+        public OllamaLlmService(HttpClient http, ILogger<OllamaLlmService> logger, SettingsService settings)
         {
-            _http = http;
-            _logger = logger;
+            _http     = http;
+            _logger   = logger;
+            _settings = settings;
         }
 
         public async Task<string> CompleteAsync(string prompt, CancellationToken ct = default)
         {
+            var model = _settings.Current.LlmModel;
             var response = await _http.PostAsJsonAsync("api/generate", new
             {
-                model = "llama3.2",   // hardcoded for now, could be made dynamic later
-                prompt = prompt,
-                stream = false      // keep it simple for now
+                model,
+                prompt,
+                stream = false
             }, ct);
 
             response.EnsureSuccessStatusCode();
@@ -34,12 +36,13 @@ namespace RagAMuffin.Services
         public async IAsyncEnumerable<string> StreamAsync(string prompt,
     [EnumeratorCancellation] CancellationToken ct = default)
         {
+            var model   = _settings.Current.LlmModel;
             var request = new HttpRequestMessage(HttpMethod.Post, "api/generate")
             {
                 Content = JsonContent.Create(new
                 {
-                    model = "llama3",
-                    prompt = prompt,
+                    model,
+                    prompt,
                     stream = true
                 })
             };

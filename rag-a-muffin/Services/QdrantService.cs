@@ -47,7 +47,7 @@ namespace RagAMuffin.Services
             await _client.UpsertAsync(CollectionName, [point], cancellationToken: ct);
         }
 
-        public async Task<List<ScoredChunk>> SearchAsync(float[] queryVector, int topK = 5, IEnumerable<string>? sourceTypes = null, CancellationToken ct = default)
+        public async Task<List<ScoredChunk>> SearchAsync(float[] queryVector, int topK = 5, IEnumerable<string>? sourceTypes = null, DateTimeOffset? dateFrom = null, DateTimeOffset? dateTo = null, CancellationToken ct = default)
         {
             var types = sourceTypes?.ToList();
             Filter? filter = null;
@@ -64,6 +64,18 @@ namespace RagAMuffin.Services
                             Match = new Match { Keyword = st }
                         }
                     });
+            }
+
+            if (dateFrom.HasValue || dateTo.HasValue)
+            {
+                filter ??= new Filter();
+                var range = new DatetimeRange();
+                if (dateFrom.HasValue) range.Gte = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTimeOffset(dateFrom.Value);
+                if (dateTo.HasValue)   range.Lte = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTimeOffset(dateTo.Value);
+                filter.Must.Add(new Condition
+                {
+                    Field = new FieldCondition { Key = "publishedAt", DatetimeRange = range }
+                });
             }
 
             var results = await _client.SearchAsync(

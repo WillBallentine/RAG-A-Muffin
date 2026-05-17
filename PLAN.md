@@ -62,25 +62,25 @@ Each query is currently stateless. Multi-turn context would make the assistant f
 
 ---
 
-### Phase 6 — Search Quality
+### Phase 6 — Search Quality ✓
 
-- [ ] **Hybrid search** — combine Qdrant vector search with BM25 sparse vectors for better keyword recall. Especially useful for names, product IDs, and exact phrases.
-- [ ] **Cross-encoder re-ranking** — after vector retrieval, re-rank the top-K chunks with a local cross-encoder model (e.g. `bge-reranker` via Ollama) before sending to the LLM.
-- [ ] **Date-range filter** — UI chip or inline syntax (`since:2026-01`) to restrict results to a time window.
-- [ ] **Query rewriting** — optionally rephrase the user's question before embedding (improves recall on vague queries).
-- [ ] **Larger context window** — surface up to 16 chunks instead of 8; let the user configure topK per query.
+- [ ] **Hybrid search** — combine Qdrant vector search with BM25 sparse vectors for better keyword recall. Especially useful for names, product IDs, and exact phrases. *(skipped — requires Qdrant sparse vector collection rework, breaking change)*
+- [ ] **Cross-encoder re-ranking** — after vector retrieval, re-rank the top-K chunks with a local cross-encoder model (e.g. `bge-reranker` via Ollama) before sending to the LLM. *(skipped — no Ollama cross-encoder support)*
+- [x] **Date-range filter** — date chips in the UI (All time / 7d / 30d / 3mo / 1y) mapped to `DateTimeOffset` range parameters passed through to Qdrant's `DatetimeRange` filter on the `publishedAt` field.
+- [ ] **Query rewriting** — optionally rephrase the user's question before embedding (improves recall on vague queries). *(skipped — adds latency with uncertain benefit)*
+- [x] **Larger context window** — topK selector (4 / 8 / 12 / 16 / 24) in the UI; sent per-query. Default remains 8.
 
 ---
 
-### Phase 7 — Model Flexibility
+### Phase 7 — Model Flexibility ✓
 
 Models are currently hardcoded. Users have different hardware and preferences.
 
-- [ ] **Model selector UI** — fetch available models from `GET /api/tags` on Ollama; let user pick LLM and embedding model from dropdowns in Settings.
-- [ ] **Persist model choice** — save selected models to `./data/settings.json`; apply on next query.
-- [ ] **Chunk size tuning** — expose chunk size and overlap as UI sliders in Settings.
-- [ ] **Configurable sync interval** — set sync frequency from the UI instead of editing `appsettings.json`.
-- [ ] **Per-connector toggles** — enable/disable individual connectors (Gmail, Drive, Calendar, RSS, Web) from the Sources panel without removing entries.
+- [x] **Model selector UI** — fetches available models from Ollama `/api/tags` via `GET /config/models`; user picks LLM from a dropdown in the Sources panel.
+- [x] **Persist model choice** — selected model saved to `./data/settings.json` via `PUT /config/settings`; applied on next query dynamically (no restart needed).
+- [ ] **Chunk size tuning** — expose chunk size and overlap as UI sliders in Settings. *(skipped — changing chunk size on existing index would require re-indexing all documents)*
+- [x] **Configurable sync interval** — sync interval set from the Sources panel; persisted to `connectors.json`; applied dynamically without restart.
+- [x] **Per-connector toggles** — enable/disable Gmail, Drive, Calendar, RSS, and Web individually from the Sources panel. Disabled connectors are skipped on each sync cycle.
 
 ---
 

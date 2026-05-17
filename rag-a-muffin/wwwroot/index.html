@@ -1572,6 +1572,130 @@
   }
   .index-doc-del:hover { border-color: var(--err); color: var(--err); }
 
+  /* ── TopK selector ── */
+  .topk-select {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .topk-select:focus { border-color: var(--accent); }
+
+  /* ── Date chips ── */
+  .date-chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 9px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s;
+    user-select: none;
+  }
+  .date-chip:hover  { border-color: var(--accent); color: var(--text); }
+  .date-chip.active { border-color: #a78bfa; background: rgba(167,139,250,.12); color: #a78bfa; }
+
+  /* ── Settings section extras ── */
+  .settings-toggle-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .settings-toggle-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .settings-toggle-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+  }
+  .toggle-switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .toggle-track::before {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    left: 3px;
+    top: 3px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: transform .2s, background .2s;
+  }
+  .toggle-switch input:checked + .toggle-track { background: var(--accent-dim); }
+  .toggle-switch input:checked + .toggle-track::before {
+    transform: translateX(16px);
+    background: var(--accent);
+  }
+
+  .settings-number-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .settings-number-input {
+    width: 80px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+    transition: border-color .2s;
+    text-align: right;
+  }
+  .settings-number-input:focus { border-color: var(--accent); }
+  .settings-number-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .settings-model-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .settings-model-select:focus { border-color: var(--accent); }
+
   /* ── History button ── */
   .btn-history {
     display: flex;
@@ -2053,6 +2177,21 @@
       <span class="chip" data-filter="rss" onclick="setFilter('rss')">RSS</span>
       <span class="chip" data-filter="web" onclick="setFilter('web')">Web</span>
     </div>
+    <div class="filter-bar" style="margin-bottom:8px">
+      <span class="filter-label">date</span>
+      <span class="date-chip active" data-date="all"   onclick="setDateFilter('all')">All time</span>
+      <span class="date-chip" data-date="7d"    onclick="setDateFilter('7d')">7 days</span>
+      <span class="date-chip" data-date="30d"   onclick="setDateFilter('30d')">30 days</span>
+      <span class="date-chip" data-date="90d"   onclick="setDateFilter('90d')">3 months</span>
+      <span class="date-chip" data-date="1y"    onclick="setDateFilter('1y')">1 year</span>
+      <span class="filter-label" style="margin-left:auto">top</span>
+      <select class="topk-select" id="topkSelect" onchange="activeTopK=+this.value">
+        <option value="4">4</option>
+        <option value="8" selected>8</option>
+        <option value="12">12</option>
+        <option value="16">16</option>
+      </select>
+    </div>
     <div class="input-row">
       <textarea
         id="input"
@@ -2139,6 +2278,33 @@
                onkeydown="if(event.key==='Enter') addEntry('web')" />
         <button class="btn-add-entry" onclick="addEntry('web')">+ Add</button>
       </div>
+    </div>
+
+    <!-- Active connectors -->
+    <div class="settings-section">
+      <div class="settings-section-title">Active Connectors</div>
+      <div class="settings-section-desc">Disable a connector to skip it during sync. The index keeps existing documents.</div>
+      <div class="settings-toggle-row" id="connectorToggles">
+        <!-- rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Sync interval -->
+    <div class="settings-section">
+      <div class="settings-section-title">Sync Interval</div>
+      <div class="settings-number-row">
+        <input class="settings-number-input" id="syncIntervalInput" type="number" min="1" max="1440" value="60" />
+        <span class="settings-number-label">minutes (0 = use default from appsettings)</span>
+      </div>
+    </div>
+
+    <!-- LLM model -->
+    <div class="settings-section">
+      <div class="settings-section-title">LLM Model</div>
+      <div class="settings-section-desc">The model used to generate answers. Embedding model (nomic-embed-text) is fixed.</div>
+      <select class="settings-model-select" id="llmModelSelect">
+        <option value="">Loading models…</option>
+      </select>
     </div>
 
   </div>
@@ -2260,6 +2426,33 @@
   let isStreaming = false;
   let currentUserId = localStorage.getItem('ram_userId') || null;
   let activeFilter = 'all'; // 'all' | 'gmail' | 'docs'
+
+  // ── Date filter state ─────────────────────────────────────
+  let activeDateFilter = 'all';
+  let activeTopK       = 8;
+
+  function setDateFilter(range) {
+    activeDateFilter = range;
+    document.querySelectorAll('.date-chip').forEach(c =>
+      c.classList.toggle('active', c.dataset.date === range));
+  }
+
+  function buildDateRange() {
+    const now = new Date();
+    const days = { '7d': 7, '30d': 30, '90d': 90 };
+    if (activeDateFilter === 'all') return { dateFrom: null, dateTo: null };
+    if (days[activeDateFilter]) {
+      const from = new Date(now);
+      from.setDate(from.getDate() - days[activeDateFilter]);
+      return { dateFrom: from.toISOString(), dateTo: null };
+    }
+    if (activeDateFilter === '1y') {
+      const from = new Date(now);
+      from.setFullYear(from.getFullYear() - 1);
+      return { dateFrom: from.toISOString(), dateTo: null };
+    }
+    return { dateFrom: null, dateTo: null };
+  }
 
   // ── Session state ─────────────────────────────────────────
   let conversationHistory = []; // [{role, content}] — sent to LLM as context
@@ -2522,9 +2715,10 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query,
-          topK: 8,
+          topK: activeTopK,
           sourceTypes: buildSourceTypes(),
-          history: conversationHistory.slice(-10) // last 5 turns
+          history: conversationHistory.slice(-10),
+          ...buildDateRange()
         })
       });
 
@@ -2854,17 +3048,43 @@
   }
 
   // ── Sources / connector config ───────────────────────────
-  let connectorConfig = { rssFeeds: [], webUrls: [] };
+  const ALL_CONNECTORS = ['gmail', 'drive', 'calendar', 'rss', 'web'];
+  const CONNECTOR_LABELS = { gmail: 'Gmail', drive: 'Google Drive', calendar: 'Google Calendar', rss: 'RSS Feeds', web: 'Web Scraper' };
+
+  let connectorConfig  = { rssFeeds: [], webUrls: [], enabledConnectors: [...ALL_CONNECTORS], syncIntervalMinutes: 0 };
+  let availableModels  = [];
+  let currentLlmModel  = 'llama3.2';
 
   async function openSettings() {
     document.getElementById('settingsPanel').classList.remove('hidden');
-    renderConnectorConfig(); // render cached state immediately
+    renderConnectorConfig();
+    renderConnectorToggles();
+
     try {
-      const res = await fetch(`${API_BASE}/config/connectors`, { cache: 'no-store' });
-      if (res.ok) {
-        connectorConfig = await res.json();
+      const [cfgRes, settingsRes, modelsRes] = await Promise.all([
+        fetch(`${API_BASE}/config/connectors`, { cache: 'no-store' }),
+        fetch(`${API_BASE}/config/settings`,   { cache: 'no-store' }),
+        fetch(`${API_BASE}/config/models`,      { cache: 'no-store' })
+      ]);
+
+      if (cfgRes.ok) {
+        connectorConfig = await cfgRes.json();
         renderConnectorConfig();
+        renderConnectorToggles();
+        document.getElementById('syncIntervalInput').value =
+          connectorConfig.syncIntervalMinutes ?? 0;
       }
+
+      if (settingsRes.ok) {
+        const settings = await settingsRes.json();
+        currentLlmModel = settings.llmModel ?? 'llama3.2';
+      }
+
+      if (modelsRes.ok) {
+        availableModels = await modelsRes.json();
+      }
+
+      renderModelSelect();
     } catch { /* server may be starting */ }
   }
 
@@ -2875,6 +3095,37 @@
   function renderConnectorConfig() {
     renderFeedList('rssFeedList', connectorConfig.rssFeeds, 'rss');
     renderFeedList('webUrlList',  connectorConfig.webUrls,  'web');
+  }
+
+  function renderConnectorToggles() {
+    const enabled = new Set(connectorConfig.enabledConnectors ?? ALL_CONNECTORS);
+    document.getElementById('connectorToggles').innerHTML = ALL_CONNECTORS.map(c => `
+      <div class="settings-toggle-item">
+        <span class="settings-toggle-label">${CONNECTOR_LABELS[c]}</span>
+        <label class="toggle-switch">
+          <input type="checkbox" ${enabled.has(c) ? 'checked' : ''}
+                 onchange="toggleConnector('${c}', this.checked)" />
+          <span class="toggle-track"></span>
+        </label>
+      </div>`).join('');
+  }
+
+  function toggleConnector(name, enabled) {
+    const set = new Set(connectorConfig.enabledConnectors ?? ALL_CONNECTORS);
+    if (enabled) set.add(name); else set.delete(name);
+    connectorConfig = { ...connectorConfig, enabledConnectors: [...set] };
+  }
+
+  function renderModelSelect() {
+    const sel = document.getElementById('llmModelSelect');
+    if (!availableModels.length) {
+      sel.innerHTML = `<option value="${escapeHtml(currentLlmModel)}" selected>${escapeHtml(currentLlmModel)}</option>`;
+      return;
+    }
+    const options = availableModels.map(m =>
+      `<option value="${escapeHtml(m)}" ${m === currentLlmModel ? 'selected' : ''}>${escapeHtml(m)}</option>`
+    ).join('');
+    sel.innerHTML = options;
   }
 
   function renderFeedList(containerId, entries, type) {
@@ -2924,19 +3175,32 @@
     if (document.getElementById('rssUrlInput').value.trim()) addEntry('rss');
     if (document.getElementById('webUrlInput').value.trim()) addEntry('web');
 
+    const interval   = parseInt(document.getElementById('syncIntervalInput').value, 10) || 0;
+    const llmModel   = document.getElementById('llmModelSelect').value || currentLlmModel;
+    const configToSave = { ...connectorConfig, syncIntervalMinutes: interval };
+
     const btn = document.getElementById('saveConfigBtn');
     btn.disabled    = true;
     btn.textContent = 'Saving...';
     try {
-      const res = await fetch(`${API_BASE}/config/connectors`, {
-        method:  'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(connectorConfig)
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      connectorConfig = await res.json();
+      const [cfgRes, settingsRes] = await Promise.all([
+        fetch(`${API_BASE}/config/connectors`, {
+          method:  'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(configToSave)
+        }),
+        fetch(`${API_BASE}/config/settings`, {
+          method:  'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ llmModel })
+        })
+      ]);
+      if (!cfgRes.ok || !settingsRes.ok) throw new Error('Save failed');
+      connectorConfig = await cfgRes.json();
+      currentLlmModel = llmModel;
       renderConnectorConfig();
-      showToast('✓ Sources saved — takes effect on next sync');
+      renderConnectorToggles();
+      showToast('✓ Settings saved');
     } catch (err) {
       showToast(`Failed to save: ${err.message}`, true);
     } finally {

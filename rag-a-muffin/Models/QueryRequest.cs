@@ -9,6 +9,8 @@ namespace RagAMuffin.Models
         public string[]? SourceTypes { get; init; }
         // Prior conversation turns (role + content only; CitationsJson ignored by the LLM).
         // Frontend sends the last N turns so the model can answer follow-up questions.
-        public ChatMessage[]? History { get; init; }
+        public ChatMessage[]?    History  { get; init; }
+        public DateTimeOffset?   DateFrom { get; init; }
+        public DateTimeOffset?   DateTo   { get; init; }
     }
 }

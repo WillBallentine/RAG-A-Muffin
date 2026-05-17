@@ -45,6 +45,7 @@ builder.Services.AddSingleton<QdrantClient>(sp =>
 builder.Services.AddScoped<QdrantCollectionInitializer>();
 builder.Services.AddScoped<IRagQueryService, RagQueryService>();
 builder.Services.AddSingleton<ChatSessionService>();
+builder.Services.AddSingleton<SettingsService>();
 builder.Services.AddScoped<IVectorStore, QdrantVectorStore>();
 builder.Services.AddScoped<IChunker>(sp => new TextChunker(sp.GetRequiredService<ILogger<TextChunker>>(), 100, 25));
 builder.Services.AddScoped<IEmailParser, EmailParser>();
@@ -162,8 +163,12 @@ app.MapGet("/status", async (
     IConfiguration config) =>
 {
     var userConfigured = profile.IsConfigured;
-    var googleAuthorized = userConfigured &&
-        await GoogleAuth.HasStoredCredentialAsync(profile.UserId!);
+    var googleAuthorized = false;
+    if (userConfigured)
+    {
+        try { googleAuthorized = await GoogleAuth.HasStoredCredentialAsync(profile.UserId!); }
+        catch { /* credentials file temporarily unavailable (e.g. during rebuild) */ }
+    }
 
     return Results.Ok(new
     {
@@ -171,7 +176,10 @@ app.MapGet("/status", async (
         googleAuthorized,
         rssFeeds     = connectorConfig.Current.RssFeeds.Count,
         webUrls      = connectorConfig.Current.WebUrls.Count,
-        syncInterval = config.GetValue("Ingestion:IntervalMinutes", 60),
+        syncInterval = connectorConfig.Current.SyncIntervalMinutes > 0
+            ? connectorConfig.Current.SyncIntervalMinutes
+            : config.GetValue("Ingestion:IntervalMinutes", 60),
+        enabledConnectors = connectorConfig.Current.EnabledConnectors,
         drive = new
         {
             folderCount = config.GetSection("Connectors:Drive:FolderIds").Get<string[]>()?.Length ?? 0,
@@ -183,6 +191,36 @@ app.MapGet("/status", async (
             daysAhead = config.GetValue("Connectors:Calendar:DaysAhead", 7)
         }
     });
+});
+
+// ── App settings endpoints ───────────────────────────────────────────────────
+
+app.MapGet("/config/settings",
+    (SettingsService settings) => Results.Ok(settings.Current));
+
+app.MapPut("/config/settings",
+    async (AppSettings settings, SettingsService svc) =>
+        Results.Ok(await svc.SaveAsync(settings)));
+
+app.MapGet("/config/models", async (IConfiguration config, IHttpClientFactory factory) =>
+{
+    var baseUrl = config["Ollama:BaseUrl"] ?? "http://ollama:11434";
+    try
+    {
+        using var http = factory.CreateClient();
+        var res  = await http.GetFromJsonAsync<System.Text.Json.JsonElement>($"{baseUrl}/api/tags");
+        var names = res.GetProperty("models")
+            .EnumerateArray()
+            .Select(m => m.GetProperty("name").GetString())
+            .Where(n => n is not null)
+            .OrderBy(n => n)
+            .ToList();
+        return Results.Ok(names);
+    }
+    catch
+    {
+        return Results.Ok(new List<string>());
+    }
 });
 
 // ── Connector config endpoints ────────────────────────────────────────────────

@@ -196,9 +196,39 @@ Use the chips above the input to scope results:
 | RSS | RSS / Atom feeds |
 | Web | Scraped web pages |
 
+### Date filter
+
+A second filter bar sits below the source chips. Click a date chip to restrict results to a recent time window:
+
+| Chip | Window |
+|---|---|
+| All time | No date restriction |
+| 7d | Last 7 days |
+| 30d | Last 30 days |
+| 3mo | Last 3 months |
+| 1y | Last 12 months |
+
+The filter maps directly to Qdrant's `publishedAt` field — only documents indexed within that window are considered.
+
+### TopK
+
+The **Results** selector (next to the date chips) controls how many document chunks are retrieved and sent to the LLM. Options: 4, 8, 12, 16, 24. A higher value gives the model more context but increases latency.
+
 ### Managing RSS feeds and web URLs
 
 Click the **Sources** icon in the header to open the connector config panel. Add or remove RSS feeds and web URLs without editing any config files. You can either click **+ Add** after typing a URL, or just type the URL and click **Save changes** — the pending value is auto-added before saving. Changes take effect on the next sync cycle.
+
+### Connector toggles
+
+Inside the Sources panel, toggle individual connectors on or off without removing their configuration. Disabled connectors are skipped during every sync cycle (scheduled and manual). Toggle state persists to `./data/connectors.json`.
+
+### Sync interval
+
+Set the background sync frequency from the Sources panel (0 = disabled, or any positive number of minutes). The change is applied immediately to the running sync loop — no restart required.
+
+### LLM model
+
+The Sources panel includes a **Model** dropdown populated from Ollama's available models. Select any model you've pulled with `ollama pull <model>` and it takes effect on the next query. The choice is persisted to `./data/settings.json`.
 
 ### Manual sync
 
@@ -268,6 +298,7 @@ Click the **Dev** (wrench) icon in the header to open the Dev Tools panel. From 
 │                                                                      │
 ├──────────────────────────────────────────────────────────────────────┤
 │ source  [All] [Email] [Docs] [Drive] [Calendar] [RSS] [Web]          │
+│ time    [All time] [7d] [30d] [3mo] [1y]    Results [8 ▾]           │
 │ ┌──────────────────────────────────────────────────────────────────┐ │
 │ │ Ask about your docs, emails, anything...                      ↵  │ │
 │ └──────────────────────────────────────────────────────────────────┘ │
@@ -411,8 +442,9 @@ All persistent data lives in `./data/` on the host:
 | `./data/tokens/` | Google OAuth refresh tokens |
 | `./data/uploads/` | Uploaded files |
 | `./data/watch/` | Watch folder (drop files here for auto-ingestion) |
-| `./data/connectors.json` | RSS feeds and web URLs saved via the Sources UI |
+| `./data/connectors.json` | RSS feeds, web URLs, connector toggles, sync interval |
 | `./data/chats/` | Chat sessions (one JSON file per session) |
+| `./data/settings.json` | App settings: active LLM model |
 | `qdrant_data` (Docker volume) | Vector embeddings |
 | `ollama_data` (Docker volume) | Downloaded models |
 
@@ -442,6 +474,9 @@ All persistent data lives in `./data/` on the host:
 | `GET` | `/index/documents` | List all indexed documents (`?source=gmail` to filter by type) |
 | `DELETE` | `/index/documents/{id}` | Remove a document and all its chunks by document ID |
 | `DELETE` | `/index/source/{type}` | Bulk-remove all documents of a given source type |
+| `GET` | `/config/settings` | Get current app settings (active LLM model) |
+| `PUT` | `/config/settings` | Save app settings; takes effect on the next query |
+| `GET` | `/config/models` | List models available in Ollama (for the model selector) |
 | `POST` | `/admin/restart` | Exit the process; Docker restarts the container with the current image |
 | `POST` | `/admin/rebuild` | Build a new image from source, then restart |
 
@@ -463,7 +498,8 @@ rag-a-muffin/
 │   ├── IndexStats.cs          # Total vectors + per-source-type counts
 │   ├── ChatMessage.cs         # Single conversation turn (role + content)
 │   ├── ChatSession.cs         # Saved conversation with messages
-│   └── QueryRequest.cs        # Query + source type filter + history
+│   ├── AppSettings.cs         # LLM model preference
+│   └── QueryRequest.cs        # Query + source type filter + history + date range
 ├── Qdrant/
 │   └── QdrantInitializer.cs   # Collection + index setup
 ├── Services/
@@ -474,7 +510,8 @@ rag-a-muffin/
 │   ├── Logging/               # InMemoryLogBuffer + ILoggerProvider
 │   ├── ChatSessionService.cs      # Save/load chat sessions from ./data/chats/
 │   ├── ConnectorConfigService.cs  # Live RSS/web config (persisted to connectors.json)
-│   ├── ConnectorSyncService.cs    # BackgroundService: runs all connectors on interval
+│   ├── ConnectorSyncService.cs    # BackgroundService: dynamic interval, connector toggles
+│   ├── SettingsService.cs         # App settings singleton (LLM model, persisted to settings.json)
 │   ├── FileWatcherService.cs      # BackgroundService: watches ./data/watch/
 │   ├── FileIngestionService.cs    # Upload handler
 │   ├── IngestionPipeline.cs       # Chunk → embed → upsert
