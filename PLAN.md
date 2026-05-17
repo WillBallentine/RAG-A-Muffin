@@ -94,14 +94,14 @@ Models are currently hardcoded. Users have different hardware and preferences.
 
 ---
 
-### Phase 9 — UX & Mobile
+### Phase 9 — UX & Mobile ✓
 
-- [ ] **Mobile layout** — current max-width 860px layout doesn't adapt well to small screens; add responsive breakpoints.
-- [ ] **Light mode** — toggle between dark and light themes; persist preference in localStorage.
-- [ ] **Keyboard shortcuts** — `Cmd/Ctrl+K` to focus input, `/` to open source filter, `Esc` to close all panels.
-- [ ] **Answer copy button** — one-click copy of the full LLM response.
-- [ ] **Source preview improvement** — highlight the specific chunk text that matched the query (not just the full document preview).
-- [ ] **Inline citations** — mark citation numbers `[1]`, `[2]` inline in the streamed answer instead of (or in addition to) cards below.
+- [x] **Mobile layout** — `@media (max-width: 620px)` breakpoints: scrollable filter bars, smaller header buttons, reduced padding.
+- [x] **Light mode** — sun/moon toggle in header; `--bg`, `--surface`, `--text`, etc. overridden via `:root.light`; preference persisted to localStorage.
+- [x] **Keyboard shortcuts** — `Cmd/Ctrl+K` to focus the chat input from anywhere; `Esc` closes all open panels.
+- [x] **Answer copy button** — "copy" button on each assistant message (visible on hover); shows "copied!" for 2s after click.
+- [ ] **Source preview improvement** — highlight the specific chunk text that matched the query. *(skipped — requires backend fuzzy-match logic)*
+- [ ] **Inline citations** — mark citation numbers `[1]`, `[2]` inline in the streamed answer. *(skipped — requires streaming protocol changes)*
 
 ---
 

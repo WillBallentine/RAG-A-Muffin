@@ -255,6 +255,21 @@ Inside the panel:
 - **Delete a document** — click the trash icon on any row to remove that document and all its chunks from Qdrant
 - **Delete all by type** — click the × on a stat chip to bulk-remove every document of that source type
 
+### Copy an answer
+
+Every assistant response has a **copy** button that appears on hover. Click it to copy the full answer text to the clipboard. The button briefly shows "copied!" to confirm.
+
+### Light mode
+
+Click the **sun/moon** icon in the header to switch between dark and light themes. The preference is saved in localStorage and restored on next visit.
+
+### Keyboard shortcuts
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl/Cmd + K` | Focus the chat input from anywhere |
+| `Esc` | Close any open panel (Sources, Status, History, Index, Logs, Dev) |
+
 ### Dev Tools
 
 Click the **Dev** (wrench) icon in the header to open the Dev Tools panel. From here you can:
